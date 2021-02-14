@@ -11,8 +11,12 @@ pub struct Channel {
     pub description: String,
     pub language: Option<String>,
     pub copyright: Option<String>,
-    pub managingEditor: Option<String>,
-    pub webMaster: Option<String>,
+
+    #[serde(rename = "managingEditor")]
+    pub managing_editor: Option<String>,
+    #[serde(rename = "webMaster")]
+    pub web_master: Option<String>,
+
     pub category: Option<Vec<String>>,
 
     #[serde(rename = "item")]
