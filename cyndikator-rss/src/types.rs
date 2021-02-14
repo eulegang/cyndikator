@@ -18,6 +18,8 @@ pub struct Channel {
     pub web_master: Option<String>,
 
     pub category: Option<Vec<String>>,
+    pub generator: Option<String>,
+    pub ttl: Option<usize>,
 
     #[serde(rename = "item")]
     pub items: Vec<Item>,
