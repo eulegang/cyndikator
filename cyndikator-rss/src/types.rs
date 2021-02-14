@@ -25,4 +25,20 @@ pub struct Item {
     pub author: Option<String>,
     pub category: Vec<String>,
     pub comments: Option<String>,
+    pub guid: Option<Guid>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct Guid {
+    #[serde(default = "Guid::default_perma", rename = "isPermalink")]
+    pub is_permalink: bool,
+
+    #[serde(rename = "$value")]
+    pub link: String,
+}
+
+impl Guid {
+    fn default_perma() -> bool {
+        true
+    }
 }

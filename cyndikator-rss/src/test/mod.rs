@@ -27,5 +27,12 @@ pub fn parses() {
     assert_eq!(
         item.comments.as_deref(),
         Some("https://lobste.rs/s/bhqflt/alternative_shells")
-    )
+    );
+    assert_eq!(
+        item.guid,
+        Some(Guid {
+            is_permalink: true,
+            link: "https://lobste.rs/s/bhqflt".to_string()
+        })
+    );
 }
