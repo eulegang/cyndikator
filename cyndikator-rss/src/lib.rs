@@ -6,4 +6,4 @@ mod impls;
 mod types;
 
 pub use err::*;
-pub use types::{Channel, Guid, Rss};
+pub use types::{Channel, Guid, HtmlEncoded, Rss, Timestamp};

@@ -1,4 +1,7 @@
+use chrono::{DateTime, Local};
 use serde::Deserialize;
+
+mod deser;
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Rss {
@@ -8,7 +11,7 @@ pub struct Rss {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Channel {
     pub title: String,
-    pub description: String,
+    pub description: HtmlEncoded,
     pub language: Option<String>,
     pub copyright: Option<String>,
 
@@ -16,6 +19,11 @@ pub struct Channel {
     pub managing_editor: Option<String>,
     #[serde(rename = "webMaster")]
     pub web_master: Option<String>,
+
+    #[serde(rename = "pubDate")]
+    pub pub_date: Option<Timestamp>,
+    #[serde(rename = "lastBuildDate")]
+    pub last_build_date: Option<Timestamp>,
 
     pub category: Option<Vec<String>>,
     pub generator: Option<String>,
@@ -33,6 +41,10 @@ pub struct Item {
     pub category: Option<Vec<String>>,
     pub comments: Option<String>,
     pub guid: Option<Guid>,
+    pub description: Option<HtmlEncoded>,
+
+    #[serde(rename = "pubDate")]
+    pub pub_date: Option<Timestamp>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -47,5 +59,29 @@ pub struct Guid {
 impl Guid {
     fn default_perma() -> bool {
         true
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct Timestamp {
+    pub(crate) datetime: DateTime<Local>,
+}
+
+impl std::ops::Deref for Timestamp {
+    type Target = DateTime<Local>;
+
+    fn deref(&self) -> &DateTime<Local> {
+        &self.datetime
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct HtmlEncoded(pub(crate) String);
+
+impl std::ops::Deref for HtmlEncoded {
+    type Target = str;
+
+    fn deref(&self) -> &str {
+        self.0.deref()
     }
 }
