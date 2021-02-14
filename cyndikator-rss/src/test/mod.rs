@@ -23,7 +23,7 @@ pub fn parses() {
         item.author.as_deref(),
         Some("andyc@users.lobste.rs (andyc)")
     );
-    assert_eq!(item.category, vec!["unix".to_string()]);
+    assert_eq!(item.category, Some(vec!["unix".to_string()]));
     assert_eq!(
         item.comments.as_deref(),
         Some("https://lobste.rs/s/bhqflt/alternative_shells")

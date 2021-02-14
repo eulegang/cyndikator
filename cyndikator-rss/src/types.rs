@@ -13,6 +13,7 @@ pub struct Channel {
     pub copyright: Option<String>,
     pub managingEditor: Option<String>,
     pub webMaster: Option<String>,
+    pub category: Option<Vec<String>>,
 
     #[serde(rename = "item")]
     pub items: Vec<Item>,
@@ -23,7 +24,7 @@ pub struct Item {
     pub title: Option<String>,
     pub link: Option<String>,
     pub author: Option<String>,
-    pub category: Vec<String>,
+    pub category: Option<Vec<String>>,
     pub comments: Option<String>,
     pub guid: Option<Guid>,
 }
