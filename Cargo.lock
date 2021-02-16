@@ -176,12 +176,14 @@ dependencies = [
 name = "cyndikator"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "cyndikator-rss",
  "dirs",
  "eyre",
  "refinery",
  "rusqlite",
  "structopt",
+ "tabular",
  "thiserror",
  "tokio",
  "url",
@@ -1036,6 +1038,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d5f38ee71cbab2c827ec0ac24e76f82eca723cee92c509a65f67dee393c25112"
 dependencies = [
  "bitflags",
+ "chrono",
  "fallible-iterator",
  "fallible-streaming-iterator",
  "hashlink",
@@ -1230,6 +1233,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-xid",
+]
+
+[[package]]
+name = "tabular"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7e35bee02dcefe64a74065b6b869d241eab1a02fea0d65e6074ce4e51894c3b"
+dependencies = [
+ "unicode-width",
 ]
 
 [[package]]

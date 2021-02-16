@@ -1,3 +1,4 @@
+use chrono::{DateTime, Local};
 use cyndikator_rss::Rss;
 use rusqlite::{params, Connection, OpenFlags};
 use url::Url;
@@ -13,6 +14,14 @@ mod migrate {
 pub struct Database {
     conn: Connection,
     pid_path: PathBuf,
+}
+
+#[derive(Debug)]
+pub struct Feed {
+    pub title: String,
+    pub url: String,
+    pub ttl: Option<u32>,
+    pub last_fetch: Option<DateTime<Local>>,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -85,5 +94,28 @@ impl Database {
         }
 
         Ok(())
+    }
+
+    pub fn tracking(&mut self) -> Result<Vec<Feed>, Error> {
+        let mut stmt = self
+            .conn
+            .prepare("select title, url, ttl, last_fetch from feeds")?;
+
+        let iter = stmt.query_map(params![], |row| {
+            Ok(Feed {
+                title: row.get(0)?,
+                url: row.get(1)?,
+                ttl: row.get(2)?,
+                last_fetch: row.get(3)?,
+            })
+        })?;
+
+        let mut buf = Vec::new();
+
+        for row in iter {
+            buf.push(row?);
+        }
+
+        Ok(buf)
     }
 }

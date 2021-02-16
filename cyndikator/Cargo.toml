@@ -16,8 +16,10 @@ thiserror = "1.0"
 structopt = "0.3"
 dirs = "3.0"
 tokio = { version = "1.0", features = [ "full" ] }
-rusqlite = { version = "0.24" }
+rusqlite = { version = "0.24", features = [ "chrono" ] }
 refinery = { version = "0.5", features = [ "rusqlite" ] }
 url = { version = "2.2" }
+chrono = { version = "0.4" }
+tabular = { version = "0.1" }
 
 cyndikator-rss = { path = "../cyndikator-rss" }
