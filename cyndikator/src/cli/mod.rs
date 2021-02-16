@@ -13,6 +13,7 @@ pub enum Cli {
     Run(run::Run),
     Track(track::Track),
     Tracking(track::Tracking),
+    Untrack(track::Untrack),
     Init(init::Init),
 }
 
@@ -24,6 +25,7 @@ impl Cli {
             Cli::Run(cmd) => cmd.run().await,
             Cli::Track(cmd) => cmd.run().await,
             Cli::Tracking(cmd) => cmd.run().await,
+            Cli::Untrack(cmd) => cmd.run().await,
             Cli::Init(cmd) => cmd.run().await,
         }
     }

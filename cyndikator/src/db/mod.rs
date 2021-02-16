@@ -118,4 +118,12 @@ impl Database {
 
         Ok(buf)
     }
+
+    pub fn untrack(&mut self, url: &str) -> Result<bool, Error> {
+        let affected = self
+            .conn
+            .execute("delete from feeds where url = ?1", params![url])?;
+
+        Ok(affected > 0)
+    }
 }

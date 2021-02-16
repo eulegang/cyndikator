@@ -87,3 +87,31 @@ impl Tracking {
         Ok(())
     }
 }
+
+/// Remove feed from being tracked
+#[derive(StructOpt)]
+pub struct Untrack {
+    /// where the database is located
+    #[structopt(short, long, env = "CYNDIKATOR_DATABASE")]
+    database: Option<String>,
+
+    /// url to untrack
+    feed: String,
+}
+
+impl Untrack {
+    pub async fn run(self) -> eyre::Result<()> {
+        let path = self
+            .database
+            .map_or_else(|| Database::default_path(), |s| PathBuf::from(s));
+        let mut db = Database::open(path)?;
+
+        let existed = db.untrack(&self.feed)?;
+
+        if !existed {
+            std::process::exit(1);
+        }
+
+        Ok(())
+    }
+}
