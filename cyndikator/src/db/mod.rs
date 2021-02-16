@@ -1,4 +1,6 @@
-use rusqlite::{Connection, OpenFlags};
+use cyndikator_rss::Rss;
+use rusqlite::{params, Connection, OpenFlags};
+use url::Url;
 
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
@@ -63,5 +65,25 @@ impl Database {
         dir.push("cynd.db3");
 
         dir
+    }
+
+    pub fn track(&mut self, url: &Url, rss: &Rss, ttl: Option<u32>) -> Result<(), Error> {
+        if let Some(ttl) = ttl {
+            self.conn.execute(
+                "insert into feeds 
+            (url, title, ttl) values 
+            (?1, ?2, ?3)",
+                params![url.as_ref(), &rss.channel.title, ttl],
+            )?;
+        } else {
+            self.conn.execute(
+                "insert into feeds 
+            (url, title) values 
+            (?1, ?2)",
+                params![url.as_ref(), &rss.channel.title],
+            )?;
+        }
+
+        Ok(())
     }
 }

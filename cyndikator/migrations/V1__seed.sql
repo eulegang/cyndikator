@@ -1,8 +1,9 @@
 create table if not exists feeds (
-e  id integer primary key,
+  id integer primary key,
   url text unique not null,
   title text,
-  last_fetch text
+  ttl integer default 60,
+  last_fetch text default null
 );
 
 create table if not exists items (

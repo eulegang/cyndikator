@@ -176,6 +176,7 @@ dependencies = [
 name = "cyndikator"
 version = "0.1.0"
 dependencies = [
+ "cyndikator-rss",
  "dirs",
  "eyre",
  "refinery",
@@ -183,6 +184,7 @@ dependencies = [
  "structopt",
  "thiserror",
  "tokio",
+ "url",
 ]
 
 [[package]]

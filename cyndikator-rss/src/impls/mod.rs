@@ -14,7 +14,8 @@ impl FromStr for Rss {
 
 #[cfg(feature = "fetch")]
 impl Rss {
-    pub async fn fetch(url: url::Url) -> Result<Rss, Error> {
+    pub async fn fetch(url: &url::Url) -> Result<Rss, Error> {
+        let url = url.clone();
         match url.scheme() {
             "https" | "http" => {
                 let resp = reqwest::get(url).await?.error_for_status()?;

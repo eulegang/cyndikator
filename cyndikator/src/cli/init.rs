@@ -4,13 +4,14 @@ use structopt::StructOpt;
 
 use std::path::PathBuf;
 
+/// Init and/or update the cyndikator database
 #[derive(StructOpt)]
 pub struct Init {
     /// where the database is located
     #[structopt(short, long, env = "CYNDIKATOR_DATABASE")]
     database: Option<String>,
 
-    /// Update the database scheme
+    /// Update the database schema
     #[structopt(short, long)]
     update: bool,
 }
@@ -22,7 +23,9 @@ impl Init {
             .map_or_else(|| Database::default_path(), |s| PathBuf::from(s));
         let mut db = Database::create(path)?;
 
-        db.migrate().wrap_err("unable to migrate")?;
+        if self.update {
+            db.migrate().wrap_err("unable to migrate")?;
+        }
 
         Ok(())
     }
