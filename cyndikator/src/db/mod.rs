@@ -13,7 +13,6 @@ mod migrate {
 
 pub struct Database {
     conn: Connection,
-    pid_path: PathBuf,
 }
 
 #[derive(Debug)]
@@ -38,22 +37,15 @@ impl Database {
         let path = path.as_ref();
         let conn = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_WRITE)?;
 
-        let mut pid_path: PathBuf = path.into();
-        pid_path.pop();
-        pid_path.push("pid");
-
-        Ok(Database { conn, pid_path })
+        Ok(Database { conn })
     }
 
     pub fn create(path: impl AsRef<Path>) -> Result<Database, Error> {
         let path = path.as_ref();
 
         let conn = Connection::open(path)?;
-        let mut pid_path: PathBuf = path.into();
-        pid_path.pop();
-        pid_path.push("pid");
 
-        Ok(Database { conn, pid_path })
+        Ok(Database { conn })
     }
 
     pub fn migrate(&mut self) -> Result<(), Error> {
