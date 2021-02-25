@@ -118,4 +118,20 @@ impl Database {
 
         Ok(affected > 0)
     }
+
+    pub fn actions(&mut self) -> Result<Vec<(u32, String, String)>, Error> {
+        let mut stmt = self
+            .conn
+            .prepare("select id, conditions, action from feeds")?;
+
+        let iter = stmt.query_map(params![], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?;
+
+        let mut buf = Vec::new();
+
+        for row in iter {
+            buf.push(row?);
+        }
+
+        Ok(buf)
+    }
 }

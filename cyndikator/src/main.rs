@@ -1,7 +1,10 @@
 use structopt::StructOpt;
 
 mod cli;
+mod daemon;
 mod db;
+mod ticker;
+mod tracker;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {

@@ -16,15 +16,12 @@ create table if not exists items (
 
   foreign key (feed_id) 
     references feeds(id)
+    on delete cascade
 );
 
 create table if not exists actions (
   id integer primary key,
-  feed_id integer,
   conditions text,
-  action text,
-
-  foreign key (feed_id)
-    references feeds(id)
+  action text
 )
 

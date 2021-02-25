@@ -21,5 +21,7 @@ refinery = { version = "0.5", features = [ "rusqlite" ] }
 url = { version = "2.2" }
 chrono = { version = "0.4" }
 tabular = { version = "0.1" }
+futures = { version = "0.3" }
+nom = { version = "6.1" }
 
 cyndikator-rss = { path = "../cyndikator-rss" }
