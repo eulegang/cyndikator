@@ -1,5 +1,6 @@
 [workspace]
 members = [
   "cyndikator",
-  "cyndikator-rss"
+  "cyndikator-rss",
+  "cyndikator-dispatch",
 ]
