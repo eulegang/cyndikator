@@ -272,6 +272,7 @@ impl Parsable for Var {
             Token::Ident {
                 content: "feed_categories",
             } => Var::FeedCategories,
+            Token::Ident { content: "url" } => Var::URL,
 
             _ => {
                 return Err(ParseError::InvalidExpectation {

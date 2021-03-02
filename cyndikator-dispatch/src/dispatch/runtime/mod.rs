@@ -50,6 +50,7 @@ pub enum Var {
     Categories,
     FeedTitle,
     FeedCategories,
+    URL,
 }
 
 #[derive(Debug)]
@@ -61,6 +62,7 @@ pub enum StringInterpol {
 impl Var {
     pub fn realize(&self, event: &Event) -> Value {
         match self {
+            Var::URL => event.url.clone().into(),
             Var::Title => event.title.clone().into(),
             Var::FeedTitle => event.feed_title.clone().into(),
             Var::Categories => event.categories.clone().into(),
@@ -90,6 +92,12 @@ impl From<Option<String>> for Value {
 impl From<Vec<String>> for Value {
     fn from(ss: Vec<String>) -> Value {
         Value::Strs(ss)
+    }
+}
+
+impl From<String> for Value {
+    fn from(s: String) -> Value {
+        Value::Str(s)
     }
 }
 

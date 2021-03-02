@@ -3,6 +3,9 @@ use derive_builder::Builder;
 /// An event modeling a rss items and other such notification systems.
 #[derive(Builder)]
 pub struct Event {
+    /// Url where the event was found
+    pub(crate) url: String,
+
     /// Title of an event
     pub(crate) title: Option<String>,
 
