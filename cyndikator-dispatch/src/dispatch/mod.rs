@@ -100,6 +100,8 @@ pub enum ParseError {
     },
 }
 
+impl std::error::Error for ParseError {}
+
 impl fmt::Display for ParseError {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
