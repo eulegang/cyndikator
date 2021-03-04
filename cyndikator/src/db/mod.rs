@@ -119,19 +119,22 @@ impl Database {
         Ok(affected > 0)
     }
 
-    pub fn actions(&mut self) -> Result<Vec<(u32, String, String)>, Error> {
-        let mut stmt = self
-            .conn
-            .prepare("select id, conditions, action from feeds")?;
+    pub fn record(
+        &mut self,
+        feed_url: &str,
+        name: Option<&str>,
+        url: Option<&str>,
+    ) -> Result<(), Error> {
+        self.conn.execute(
+            "
+                insert into items (title, url, feed_id) 
+                select ?1 title, ?2 url, id feed_id 
+                from feeds where url = ?3
+            "
+            .trim(),
+            params![name, url, feed_url],
+        )?;
 
-        let iter = stmt.query_map(params![], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?;
-
-        let mut buf = Vec::new();
-
-        for row in iter {
-            buf.push(row?);
-        }
-
-        Ok(buf)
+        Ok(())
     }
 }

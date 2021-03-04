@@ -30,9 +30,10 @@ fn dispatch() {
     let dispatch = Dispatch::parse("'rust' in categories { record }").unwrap();
 
     let actions = dispatch.dispatch(&Event {
-        url: String::from("https://lobste.rs/rss"),
+        url: None,
         title: Some("foobar".to_string()),
         categories: vec!["rust".to_string()],
+        feed_url: String::from("https://lobste.rs/rss"),
         feed_title: Some("foobar".to_string()),
         feed_categories: vec![],
     });
@@ -40,9 +41,10 @@ fn dispatch() {
     assert_eq!(actions, vec![Action::Record]);
 
     let actions = dispatch.dispatch(&Event {
-        url: String::from("https://lobste.rs/rss"),
+        url: None,
         title: Some("foobar".to_string()),
         categories: vec![],
+        feed_url: String::from("https://lobste.rs/rss"),
         feed_title: Some("foobar".to_string()),
         feed_categories: vec![],
     });
@@ -52,9 +54,10 @@ fn dispatch() {
     let dispatch = Dispatch::parse("title matches /rust/i { notify }").unwrap();
 
     let actions = dispatch.dispatch(&Event {
-        url: String::from("https://lobste.rs/rss"),
+        url: None,
         title: Some("Curst of Rust".to_string()),
         categories: vec![],
+        feed_url: String::from("https://lobste.rs/rss"),
         feed_title: None,
         feed_categories: vec![],
     });
@@ -67,9 +70,10 @@ fn action_deduplication() {
     let dispatch = Dispatch::parse("title matches /rust/i { notify record notify }").unwrap();
 
     let actions = dispatch.dispatch(&Event {
-        url: String::from("https://lobste.rs/rss"),
+        url: None,
         title: Some("Curst of Rust".to_string()),
         categories: vec![],
+        feed_url: String::from("https://lobste.rs/rss"),
         feed_title: None,
         feed_categories: vec![],
     });
@@ -82,11 +86,12 @@ fn action_deduplication() {
     .unwrap();
 
     let actions = dispatch.dispatch(&Event {
-        url: String::from(
-            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
-        ),
+        url: None,
         title: Some("Crust of Rust: Subtyping and Variance".to_string()),
         categories: vec![],
+        feed_url: String::from(
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
+        ),
         feed_title: Some("Youtube".to_string()),
         feed_categories: vec![],
     });
@@ -117,11 +122,12 @@ title matches /rust/i {
     .unwrap();
 
     let actions = dispatch.dispatch(&Event {
-        url: String::from(
-            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
-        ),
+        url: None,
         title: Some("Crust of Rust: Subtyping and Variance".to_string()),
         categories: vec!["rust".to_string()],
+        feed_url: String::from(
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
+        ),
         feed_title: Some("Youtube".to_string()),
         feed_categories: vec![],
     });
@@ -147,11 +153,12 @@ title matches /rust/i {
     .unwrap();
 
     let actions = dispatch.dispatch(&Event {
-        url: String::from(
-            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
-        ),
+        url: None,
         title: Some("Crust of Rust: Subtyping and Variance".to_string()),
         categories: vec!["rust".to_string()],
+        feed_url: String::from(
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
+        ),
         feed_title: Some("Youtube".to_string()),
         feed_categories: vec![],
     });

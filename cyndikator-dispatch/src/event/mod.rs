@@ -1,20 +1,20 @@
-use derive_builder::Builder;
-
 /// An event modeling a rss items and other such notification systems.
-#[derive(Builder)]
 pub struct Event {
-    /// Url where the event was found
-    pub(crate) url: String,
+    /// Url associated with the event
+    pub url: Option<String>,
 
     /// Title of an event
-    pub(crate) title: Option<String>,
+    pub title: Option<String>,
 
     /// Categories the event
-    pub(crate) categories: Vec<String>,
+    pub categories: Vec<String>,
+
+    /// Url where the event was found
+    pub feed_url: String,
 
     /// Title of the feed
-    pub(crate) feed_title: Option<String>,
+    pub feed_title: Option<String>,
 
     /// Categories on the feed
-    pub(crate) feed_categories: Vec<String>,
+    pub feed_categories: Vec<String>,
 }

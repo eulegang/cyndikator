@@ -6,4 +6,4 @@ mod dispatch;
 mod event;
 
 pub use dispatch::{Action, Dispatch, ParseError};
-pub use event::{Event, EventBuilder};
+pub use event::Event;
