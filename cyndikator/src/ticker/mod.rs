@@ -28,11 +28,12 @@ impl Stream for Ticker {
     fn poll_next(mut self: Pin<&mut Self>, ctx: &mut Context) -> Poll<Option<DateTime<Local>>> {
         let expire = self.expire.unwrap_or_else(|| Instant::now() + self.dur);
 
-        self.expire = Some(expire);
-
         if expire <= Instant::now() {
+            self.expire = None;
             Poll::Ready(Some(Local::now()))
         } else {
+            self.expire = Some(expire);
+
             let waker = ctx.waker().clone();
 
             thread::spawn(move || {

@@ -1,3 +1,4 @@
+use log::debug;
 use std::cmp::{Ord, Ordering};
 use std::collections::BinaryHeap;
 use url::Url;
@@ -11,6 +12,7 @@ pub struct Trackee {
     pub url: Url,
 }
 
+#[derive(Debug)]
 pub struct Tracker {
     prio: BinaryHeap<Trackee>,
 }
@@ -24,9 +26,12 @@ impl Tracker {
         let mut buf = Vec::new();
 
         while let Some(t) = self.prio.peek() {
+            debug!("next avail @ {} + {}", t.last, t.ttl);
             let target = t.last + Duration::minutes(t.ttl as i64);
             if &target < marker {
                 buf.push(self.prio.pop().unwrap())
+            } else {
+                break;
             }
         }
 
@@ -38,6 +43,12 @@ impl Default for Tracker {
     fn default() -> Tracker {
         let prio = Default::default();
         Tracker { prio }
+    }
+}
+
+impl Trackee {
+    pub fn fetched(&mut self, date: &DateTime<Local>) {
+        self.last = *date;
     }
 }
 

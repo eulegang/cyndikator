@@ -1,6 +1,6 @@
 use chrono::{DateTime, Local};
 use cyndikator_rss::Rss;
-use rusqlite::{params, Connection, OpenFlags};
+use rusqlite::{config::DbConfig, params, Connection, OpenFlags};
 use url::Url;
 
 use std::fs::create_dir_all;
@@ -36,6 +36,7 @@ impl Database {
     pub fn open(path: impl AsRef<Path>) -> Result<Database, Error> {
         let path = path.as_ref();
         let conn = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_WRITE)?;
+        dbg!(conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?);
 
         Ok(Database { conn })
     }
@@ -112,9 +113,9 @@ impl Database {
     }
 
     pub fn untrack(&mut self, url: &str) -> Result<bool, Error> {
-        let affected = self
+        let affected = dbg!(self
             .conn
-            .execute("delete from feeds where url = ?1", params![url])?;
+            .execute("delete from feeds where url = ?1", params![url])?);
 
         Ok(affected > 0)
     }
@@ -136,5 +137,24 @@ impl Database {
         )?;
 
         Ok(())
+    }
+
+    pub fn mark_clean(&mut self, url: &str) -> Result<bool, Error> {
+        let size = self.conn.execute(
+            "update feeds set last_fetch = datetime('now') where url = ?1",
+            params![url],
+        )?;
+
+        Ok(size != 0)
+    }
+
+    pub fn last_fetch(&mut self, url: &str) -> Result<DateTime<Local>, Error> {
+        let timestamp = self.conn.query_row(
+            "select last_fetch from feeds where url = ?1",
+            params![url],
+            |row| row.get(0),
+        )?;
+
+        Ok(timestamp)
     }
 }

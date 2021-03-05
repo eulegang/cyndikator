@@ -3,6 +3,7 @@ use crate::ticker::Ticker;
 use crate::tracker::{Trackee, Tracker};
 use chrono::Local;
 use futures::{future::join_all, select, StreamExt};
+use log::{debug, error, info, trace};
 use notify_rust::Notification;
 use std::process::Command;
 use std::time::Duration;
@@ -29,6 +30,7 @@ impl Daemon {
 
         let mut fetches = Vec::new();
         for feed in self.db.tracking()? {
+            info!("fetching {} ...", &feed.url);
             let url = match Url::parse(&feed.url) {
                 Ok(url) => url,
                 Err(_) => continue,
@@ -37,6 +39,8 @@ impl Daemon {
             if feed.last_fetch.is_none() {
                 fetches.push(self.fetch(url.clone()));
             }
+
+            info!("tracking {}", &feed.title);
 
             tracker.track(Trackee {
                 url: url,
@@ -47,7 +51,7 @@ impl Daemon {
 
         let (rsses, errs) = sep(join_all(fetches).await);
         for (url, err) in errs {
-            eprintln!("{} {}", err, url);
+            error!("error while tracking feed '{}': {}", url, err);
         }
 
         self.dispatch(rsses).await;
@@ -55,13 +59,19 @@ impl Daemon {
         loop {
             select! {
                 now = ticker.next() => {
+                    trace!("tick");
                     let now = if let Some(now) = now { now } else { continue };
+                    debug!("checking expired {}", now);
 
                     let expired = tracker.expired(&now);
 
                     let mut fetches = Vec::new();
-                    for trackee in &expired {
+                    for mut trackee in expired {
+                        info!("fetching {}", trackee.url);
                         fetches.push(self.fetch(trackee.url.clone()));
+
+                        trackee.fetched(&now);
+                        tracker.track(trackee);
                     }
 
                     let (rsses, errs) = sep(join_all(fetches).await);
@@ -69,8 +79,8 @@ impl Daemon {
                         eprintln!("{} {}", err, url);
                     }
 
-                    self.dispatch(rsses).await;
 
+                    self.dispatch(rsses).await;
                 }
 
             }
@@ -84,9 +94,26 @@ impl Daemon {
 
     async fn dispatch(&mut self, feeds: Vec<(Url, Rss)>) {
         for (url, feed) in feeds {
+            let last_fetch = self.db.last_fetch(url.as_str()).ok();
+
             let chan = feed.channel;
 
             for item in &chan.items {
+                debug!("{:?} {:?}", &last_fetch, &item.pub_date);
+                match (&last_fetch, &item.pub_date) {
+                    (Some(lf), Some(pd)) if lf >= pd => {
+                        debug!(
+                            "skipping {} {}",
+                            &chan.title,
+                            item.title.as_deref().unwrap_or("''")
+                        );
+
+                        continue;
+                    }
+
+                    _ => (),
+                };
+
                 let event = Event {
                     url: item.link.clone(),
                     title: item.title.clone(),
@@ -97,11 +124,23 @@ impl Daemon {
                     feed_categories: chan.category.clone().unwrap_or_default(),
                 };
 
+                info!(
+                    "dispatching event {} {} {} {}",
+                    event.feed_title.as_deref().unwrap_or("''"),
+                    event.title.as_deref().unwrap_or("''"),
+                    event.feed_url,
+                    event.url.as_deref().unwrap_or("''"),
+                );
+
                 let actions = self.dispatch.dispatch(&event);
 
                 for action in &actions {
                     self.perform(action, &event).await;
                 }
+            }
+
+            if let Err(err) = self.db.mark_clean(url.as_str()) {
+                error!("failed to mark {} as clean: {}", &url, err);
             }
         }
     }
@@ -109,17 +148,33 @@ impl Daemon {
     async fn perform(&mut self, action: &Action, event: &Event) {
         match action {
             Action::Notify => {
+                debug!(
+                    "dispatching event {} {} {} {}",
+                    event.feed_title.as_deref().unwrap_or("''"),
+                    event.title.as_deref().unwrap_or("''"),
+                    event.feed_url,
+                    event.url.as_deref().unwrap_or("''"),
+                );
+
                 let res = Notification::new()
                     .summary(event.title.as_deref().unwrap_or_else(|| "(untitled event)"))
                     .body(event.url.as_deref().unwrap_or_else(|| ""))
                     .show();
 
                 if let Err(err) = res {
-                    eprintln!("error notifing {}", err)
+                    error!("error notifing {}", err)
                 }
             }
 
             Action::Record => {
+                debug!(
+                    "recording event {} {} {} {}",
+                    event.feed_title.as_deref().unwrap_or("''"),
+                    event.title.as_deref().unwrap_or("''"),
+                    event.feed_url,
+                    event.url.as_deref().unwrap_or("''"),
+                );
+
                 let res = self.db.record(
                     &event.feed_url,
                     event.title.as_deref(),
@@ -127,15 +182,24 @@ impl Daemon {
                 );
 
                 if let Err(err) = res {
-                    eprintln!("error recording {}", err)
+                    error!("error recording {}", err)
                 }
             }
 
             Action::Exec(cmd) => {
+                debug!(
+                    "execing event {} {} {} {} `{}`",
+                    event.feed_title.as_deref().unwrap_or("''"),
+                    event.title.as_deref().unwrap_or("''"),
+                    event.feed_url,
+                    event.url.as_deref().unwrap_or("''"),
+                    cmd,
+                );
+
                 let res = shell_exec(cmd);
 
                 if let Err(err) = res {
-                    eprintln!("error execing {}", err)
+                    error!("error execing {}", err)
                 }
             }
         };

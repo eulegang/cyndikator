@@ -26,5 +26,8 @@ nom = { version = "6.1" }
 wait-timeout = { version = "0.2" }
 notify-rust = { version = "4.3" }
 
+log = { version = "0.4" }
+pretty_env_logger = { version = "0.4" }
+
 cyndikator-rss = { path = "../cyndikator-rss" }
 cyndikator-dispatch = { path = "../cyndikator-dispatch" }
