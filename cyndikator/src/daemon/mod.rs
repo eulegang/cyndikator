@@ -124,7 +124,7 @@ impl Daemon {
                     feed_categories: chan.category.clone().unwrap_or_default(),
                 };
 
-                info!(
+                debug!(
                     "dispatching event {} {} {} {}",
                     event.feed_title.as_deref().unwrap_or("''"),
                     event.title.as_deref().unwrap_or("''"),
