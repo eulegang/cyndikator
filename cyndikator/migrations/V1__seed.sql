@@ -12,6 +12,9 @@ create table if not exists items (
   url text,
   feed_id integer,
 
+  description text,
+  categories text,
+
   foreign key (feed_id) 
     references feeds(id)
     on delete cascade

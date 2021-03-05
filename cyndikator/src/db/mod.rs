@@ -36,7 +36,7 @@ impl Database {
     pub fn open(path: impl AsRef<Path>) -> Result<Database, Error> {
         let path = path.as_ref();
         let conn = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_WRITE)?;
-        dbg!(conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?);
+        conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?;
 
         Ok(Database { conn })
     }
@@ -113,9 +113,9 @@ impl Database {
     }
 
     pub fn untrack(&mut self, url: &str) -> Result<bool, Error> {
-        let affected = dbg!(self
+        let affected = self
             .conn
-            .execute("delete from feeds where url = ?1", params![url])?);
+            .execute("delete from feeds where url = ?1", params![url])?;
 
         Ok(affected > 0)
     }
@@ -125,15 +125,17 @@ impl Database {
         feed_url: &str,
         name: Option<&str>,
         url: Option<&str>,
+        description: Option<&str>,
+        categories: &[String],
     ) -> Result<(), Error> {
         self.conn.execute(
             "
-                insert into items (title, url, feed_id) 
-                select ?1 title, ?2 url, id feed_id 
+                insert into items (title, url, feed_id, description, categories) 
+                select ?1 title, ?2 url, id feed_id, ?4 description, ?5 categories
                 from feeds where url = ?3
             "
             .trim(),
-            params![name, url, feed_url],
+            params![name, url, feed_url, description, categories.join("\x1e")],
         )?;
 
         Ok(())

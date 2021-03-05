@@ -9,6 +9,9 @@ pub struct Event {
     /// Categories the event
     pub categories: Vec<String>,
 
+    /// Description
+    pub description: Option<String>,
+
     /// Url where the event was found
     pub feed_url: String,
 

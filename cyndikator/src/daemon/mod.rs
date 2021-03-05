@@ -98,7 +98,7 @@ impl Daemon {
 
             let chan = feed.channel;
 
-            for item in &chan.items {
+            for item in chan.items {
                 debug!("{:?} {:?}", &last_fetch, &item.pub_date);
                 match (&last_fetch, &item.pub_date) {
                     (Some(lf), Some(pd)) if lf >= pd => {
@@ -114,10 +114,13 @@ impl Daemon {
                     _ => (),
                 };
 
+                let description = item.description.map(Into::into);
+
                 let event = Event {
                     url: item.link.clone(),
                     title: item.title.clone(),
                     categories: item.category.clone().unwrap_or_default(),
+                    description,
 
                     feed_url: url.to_string(),
                     feed_title: Some(chan.title.clone()),
@@ -179,6 +182,8 @@ impl Daemon {
                     &event.feed_url,
                     event.title.as_deref(),
                     event.url.as_deref(),
+                    event.description.as_deref(),
+                    &event.categories,
                 );
 
                 if let Err(err) = res {

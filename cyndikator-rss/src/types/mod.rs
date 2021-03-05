@@ -85,3 +85,9 @@ impl std::ops::Deref for HtmlEncoded {
         self.0.deref()
     }
 }
+
+impl Into<String> for HtmlEncoded {
+    fn into(self) -> String {
+        self.0
+    }
+}

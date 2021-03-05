@@ -31,6 +31,7 @@ fn dispatch() {
 
     let actions = dispatch.dispatch(&Event {
         url: None,
+        description: Some(String::new()),
         title: Some("foobar".to_string()),
         categories: vec!["rust".to_string()],
         feed_url: String::from("https://lobste.rs/rss"),
@@ -42,6 +43,7 @@ fn dispatch() {
 
     let actions = dispatch.dispatch(&Event {
         url: None,
+        description: Some(String::new()),
         title: Some("foobar".to_string()),
         categories: vec![],
         feed_url: String::from("https://lobste.rs/rss"),
@@ -55,6 +57,7 @@ fn dispatch() {
 
     let actions = dispatch.dispatch(&Event {
         url: None,
+        description: Some(String::new()),
         title: Some("Curst of Rust".to_string()),
         categories: vec![],
         feed_url: String::from("https://lobste.rs/rss"),
@@ -71,6 +74,7 @@ fn action_deduplication() {
 
     let actions = dispatch.dispatch(&Event {
         url: None,
+        description: Some(String::new()),
         title: Some("Curst of Rust".to_string()),
         categories: vec![],
         feed_url: String::from("https://lobste.rs/rss"),
@@ -87,6 +91,7 @@ fn action_deduplication() {
 
     let actions = dispatch.dispatch(&Event {
         url: None,
+        description: Some(String::new()),
         title: Some("Crust of Rust: Subtyping and Variance".to_string()),
         categories: vec![],
         feed_url: String::from(
@@ -123,6 +128,7 @@ title matches /rust/i {
 
     let actions = dispatch.dispatch(&Event {
         url: None,
+        description: Some(String::new()),
         title: Some("Crust of Rust: Subtyping and Variance".to_string()),
         categories: vec!["rust".to_string()],
         feed_url: String::from(
@@ -154,6 +160,7 @@ title matches /rust/i {
 
     let actions = dispatch.dispatch(&Event {
         url: None,
+        description: Some(String::new()),
         title: Some("Crust of Rust: Subtyping and Variance".to_string()),
         categories: vec!["rust".to_string()],
         feed_url: String::from(
