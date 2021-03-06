@@ -262,17 +262,23 @@ impl Parsable for Var {
         let (tokens, t) = next(tokens)?;
 
         let var = match t {
-            Token::Ident { content: "title" } => Var::Title,
-            Token::Ident {
-                content: "feed_title",
-            } => Var::FeedTitle,
-            Token::Ident {
-                content: "categories",
-            } => Var::Categories,
-            Token::Ident {
-                content: "feed_categories",
-            } => Var::FeedCategories,
-            Token::Ident { content: "url" } => Var::URL,
+            Token::Ident { content } => match *content {
+                "url" => Var::URL,
+                "title" => Var::Title,
+                "categories" => Var::Categories,
+                "description" => Var::Description,
+
+                "feed_url" => Var::FeedURL,
+                "feed_title" => Var::FeedTitle,
+                "feed_categories" => Var::FeedCategories,
+
+                _ => {
+                    return Err(ParseError::InvalidExpectation {
+                        reality: format!("{:?}", t),
+                        expect: "a variable ident".to_string(),
+                    })
+                }
+            },
 
             _ => {
                 return Err(ParseError::InvalidExpectation {
@@ -383,9 +389,13 @@ fn parse_inter_var(input: &str) -> IResult<&str, Var> {
     };
 
     let var = match content {
+        "url" => Var::URL,
         "title" => Var::Title,
-        "feed_title" => Var::FeedTitle,
         "categories" => Var::Categories,
+        "description" => Var::Description,
+
+        "feed_url" => Var::FeedURL,
+        "feed_title" => Var::FeedTitle,
         "feed_categories" => Var::FeedCategories,
 
         _ => {

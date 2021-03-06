@@ -46,11 +46,13 @@ pub enum Value {
 
 #[derive(Clone, Copy, Debug)]
 pub enum Var {
+    URL,
     Title,
     Categories,
+    Description,
+    FeedURL,
     FeedTitle,
     FeedCategories,
-    URL,
 }
 
 #[derive(Debug)]
@@ -64,8 +66,11 @@ impl Var {
         match self {
             Var::URL => event.url.clone().into(),
             Var::Title => event.title.clone().into(),
-            Var::FeedTitle => event.feed_title.clone().into(),
             Var::Categories => event.categories.clone().into(),
+            Var::Description => event.description.clone().into(),
+
+            Var::FeedURL => event.feed_url.clone().into(),
+            Var::FeedTitle => event.feed_title.clone().into(),
             Var::FeedCategories => event.feed_categories.clone().into(),
         }
     }
