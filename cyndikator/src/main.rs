@@ -6,6 +6,7 @@ mod daemon;
 mod db;
 mod ticker;
 mod tracker;
+mod view;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {

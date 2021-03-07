@@ -23,6 +23,17 @@ pub struct Feed {
     pub last_fetch: Option<DateTime<Local>>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct Entry {
+    pub id: u32,
+    pub url: Option<String>,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub categories: Vec<String>,
+    pub feed: Option<String>,
+    pub feed_url: String,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("sqlite failure {0}")]
@@ -158,5 +169,86 @@ impl Database {
         )?;
 
         Ok(timestamp)
+    }
+
+    pub fn count_records(&self) -> Result<u32, Error> {
+        let cnt = self
+            .conn
+            .query_row("select count(id) from items", params![], |row| {
+                let cnt: u32 = row.get(0)?;
+                Ok(cnt)
+            })?;
+
+        Ok(cnt)
+    }
+
+    pub fn records(&self, offset: u32, win: u32) -> Result<Vec<Entry>, Error> {
+        let mut stmt = self.conn.prepare(
+            "select 
+               items.id id, 
+               items.url url, 
+               items.title title, 
+               items.description description,
+               items.categories categories,
+               feeds.title feed_title,
+               feeds.url feed_url
+             from items inner join feeds 
+               on items.feed_id = feeds.id
+             order by items.id desc
+               limit ?1 offset ?2",
+        )?;
+
+        let iter = stmt.query_map(params![win, offset], |row| {
+            Ok(Entry {
+                id: row.get("id")?,
+                url: row.get("url")?,
+                title: row.get("title")?,
+                description: row.get("description")?,
+                categories: row
+                    .get::<&str, Option<String>>("categories")?
+                    .unwrap_or_default()
+                    .split('\x1e')
+                    .map(ToString::to_string)
+                    .collect(),
+
+                feed: row.get("feed_title")?,
+                feed_url: row.get("feed_url")?,
+            })
+        })?;
+
+        let mut buf = Vec::with_capacity(win as usize);
+
+        for row in iter {
+            buf.push(row?);
+        }
+
+        Ok(buf)
+    }
+
+    pub fn delete_record(&self, id: u32) -> Result<bool, Error> {
+        let affected = self
+            .conn
+            .execute("delete from items where id = ?1", params![id])?;
+        Ok(affected > 0)
+    }
+
+    pub fn insert_record(&self, entry: &Entry) -> Result<bool, Error> {
+        let affected = self.conn.execute(
+            "
+        insert into items (id, url, title, description, categories, feed_id) 
+        select ?1 id, ?2 url, ?3 title, ?4 description, ?5 categories, feeds.id
+        from feeds where url = ?6
+        ",
+            params![
+                entry.id,
+                entry.url,
+                entry.title,
+                entry.description,
+                entry.categories.join("\x1e"),
+                entry.feed_url
+            ],
+        )?;
+
+        Ok(affected > 0)
     }
 }

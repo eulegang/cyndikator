@@ -8,11 +8,14 @@ use eyre::WrapErr;
 
 use cyndikator_dispatch::Dispatch;
 
+/// Start tracking feeds
 #[derive(StructOpt)]
 pub struct Run {
+    /// where the database is located
     #[structopt(short, long, env = "CYNDIKATOR_DATABASE")]
     database: Option<String>,
 
+    /// File to interpret events with
     #[structopt(short, long)]
     file: Option<String>,
 }

@@ -25,6 +25,8 @@ futures = { version = "0.3" }
 nom = { version = "6.1" }
 wait-timeout = { version = "0.2" }
 notify-rust = { version = "4.3" }
+crossterm = { version = "0.19" }
+open = { version = "1.5" }
 
 log = { version = "0.4" }
 pretty_env_logger = { version = "0.4" }

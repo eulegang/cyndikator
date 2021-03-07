@@ -3,6 +3,7 @@ use structopt::StructOpt;
 mod init;
 mod run;
 mod track;
+mod view;
 
 #[derive(StructOpt)]
 pub enum Cli {
@@ -11,6 +12,7 @@ pub enum Cli {
     Tracking(track::Tracking),
     Untrack(track::Untrack),
     Init(init::Init),
+    View(view::View),
 }
 
 impl Cli {
@@ -21,6 +23,7 @@ impl Cli {
             Cli::Tracking(cmd) => cmd.run().await,
             Cli::Untrack(cmd) => cmd.run().await,
             Cli::Init(cmd) => cmd.run().await,
+            Cli::View(cmd) => cmd.run().await,
         }
     }
 }
