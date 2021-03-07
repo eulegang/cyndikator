@@ -126,7 +126,11 @@ fn parse_space(input: &str) -> IResult<&str, Token> {
 fn parse_regex(input: &str) -> IResult<&str, Token> {
     let (input, _) = char('/')(input)?;
 
-    let (input, content) = escaped(is_not("/\\"), '\\', one_of("/dwsDWS\\"))(input)?;
+    let (input, content) = escaped(
+        is_not("/\\"),
+        '\\',
+        one_of("/npbdwsDWSBAZ\\*+?()|[]{}^$aftrvuU"),
+    )(input)?;
 
     let (input, _) = char('/')(input)?;
 
