@@ -76,7 +76,7 @@ impl Daemon {
 
                     let (rsses, errs) = sep(join_all(fetches).await);
                     for (url, err) in errs {
-                        eprintln!("{} {}", err, url);
+                        error!("{} {}", err, url);
                     }
 
 
