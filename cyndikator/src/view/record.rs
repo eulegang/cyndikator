@@ -33,7 +33,7 @@ impl Cache {
 
     pub fn window(&mut self, offset: u32, win: u32) -> Result<&[Entry], Error> {
         if self.needs_load(offset, win) {
-            self.load(offset)?;
+            self.load(offset, win)?;
         }
 
         let rel = (offset - self.loc) as usize;
@@ -52,11 +52,16 @@ impl Cache {
         !inbounds
     }
 
-    fn load(&mut self, offset: u32) -> Result<(), Error> {
+    fn load(&mut self, offset: u32, win: u32) -> Result<(), Error> {
         let mask = Cache::FETCH_SIZE - 1;
         let region = offset & !mask;
 
-        self.cache = self.db.records(region, Cache::FETCH_SIZE)?;
+        let mut shift = 0;
+        while offset + win > region + (Cache::FETCH_SIZE << shift) {
+            shift += 1;
+        }
+
+        self.cache = self.db.records(region, Cache::FETCH_SIZE << shift)?;
         self.total = self.db.count_records()?;
 
         Ok(())
