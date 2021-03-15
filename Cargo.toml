@@ -2,5 +2,6 @@
 members = [
   "cyndikator",
   "cyndikator-rss",
+  "cyndikator-atom",
   "cyndikator-dispatch",
 ]

@@ -295,6 +295,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "cyndikator-atom"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "html-escape",
+ "quick-xml",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "cyndikator-dispatch"
 version = "0.1.0"
 dependencies = [
