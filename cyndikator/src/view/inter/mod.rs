@@ -130,6 +130,13 @@ impl Inter {
     }
 
     fn goto(&mut self, line: u32) {
-        self.offset = line.checked_sub(1).unwrap_or(0) as u16;
+        let adjusted = line.checked_sub(1).unwrap_or(0);
+
+        if adjusted < self.base {
+            self.base = adjusted;
+            self.offset = 0;
+        } else {
+            self.offset = (adjusted - self.base) as u16;
+        }
     }
 }
