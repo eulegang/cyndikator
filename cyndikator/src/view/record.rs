@@ -27,10 +27,6 @@ impl Cache {
         }
     }
 
-    pub fn page_base(&self) -> u32 {
-        self.loc
-    }
-
     pub fn window(&mut self, offset: u32, win: u32) -> Result<&[Entry], Error> {
         if self.needs_load(offset, win) {
             self.load(offset, win)?;
