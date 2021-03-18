@@ -181,6 +181,49 @@ title matches /rust/i {
     assert_eq!(actions, vec![Action::Record]);
 }
 
+#[test]
+fn null() {
+    let dispatch = Dispatch::parse(
+        "
+title is null { 
+    notify
+}
+
+",
+    )
+    .unwrap();
+
+    let actions = dispatch.dispatch(&Event {
+        url: None,
+        description: Some(String::new()),
+        title: Some("Crust of Rust: Subtyping and Variance".to_string()),
+        categories: vec!["rust".to_string()],
+        feed_url: String::from(
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
+        ),
+        feed_title: Some("Youtube".to_string()),
+        feed_categories: vec![],
+        date: sample_date(),
+    });
+
+    assert_eq!(actions, vec![]);
+
+    let actions = dispatch.dispatch(&Event {
+        url: None,
+        description: Some(String::new()),
+        title: None,
+        categories: vec!["rust".to_string()],
+        feed_url: String::from(
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
+        ),
+        feed_title: Some("Youtube".to_string()),
+        feed_categories: vec![],
+        date: sample_date(),
+    });
+
+    assert_eq!(actions, vec![Action::Notify]);
+}
+
 fn sample_date() -> Option<DateTime<Local>> {
     Some(Local.ymd(2000, 1, 15).and_hms(12, 30, 0))
 }

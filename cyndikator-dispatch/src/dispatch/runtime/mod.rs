@@ -35,6 +35,7 @@ pub enum Op {
 pub enum Expr {
     Str(StringInterpol),
     Var(Var),
+    Null,
 }
 
 #[derive(Debug)]
@@ -81,6 +82,7 @@ impl Expr {
         match self {
             Expr::Str(s) => Value::Str(s.interpolate(event)),
             Expr::Var(v) => v.realize(event),
+            Expr::Null => Value::Nil,
         }
     }
 }

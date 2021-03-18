@@ -248,7 +248,15 @@ impl Parsable for Expr {
         let s = StringInterpol::parse(tokens).map(|(tokens, s)| (tokens, Expr::Str(s)));
         let v = Var::parse(tokens).map(|(tokens, v)| (tokens, Expr::Var(v)));
 
-        match s.or(v) {
+        let n = next(tokens).and_then(|(tokens, t)| match t {
+            Token::Ident { content: "null" } => Ok((tokens, Expr::Null)),
+            _ => Err(ParseError::InvalidExpectation {
+                expect: "null".to_string(),
+                reality: format!("{:?}", t),
+            }),
+        });
+
+        match s.or(v).or(n) {
             Ok((tokens, e)) => Ok((tokens, e)),
             a => a,
         }
