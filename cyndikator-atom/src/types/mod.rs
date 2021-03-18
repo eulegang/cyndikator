@@ -87,6 +87,12 @@ impl std::ops::Deref for Timestamp {
     }
 }
 
+impl Into<DateTime<Local>> for Timestamp {
+    fn into(self) -> DateTime<Local> {
+        self.datetime
+    }
+}
+
 impl Text {
     fn default_type() -> String {
         "text".to_string()

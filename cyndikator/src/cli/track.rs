@@ -1,3 +1,4 @@
+use crate::fetcher::Fetcher;
 use eyre::WrapErr;
 use structopt::StructOpt;
 use tabular::{Row, Table};
@@ -5,8 +6,6 @@ use url::Url;
 
 use crate::db::Database;
 use std::path::PathBuf;
-
-use cyndikator_rss::Rss;
 
 /// Start tracking a feed
 #[derive(StructOpt)]
@@ -32,11 +31,11 @@ impl Track {
 
         let url = Url::parse(&self.feed).wrap_err("invalid url")?;
 
-        let rss = Rss::fetch(&url)
-            .await
-            .wrap_err("unable to fetch rss feed")?;
+        let mut fetcher = Fetcher::new(&url);
 
-        db.track(&url, &rss, self.ttl)?;
+        let title = fetcher.title().await?;
+
+        db.track(&url, &title, self.ttl)?;
 
         Ok(())
     }

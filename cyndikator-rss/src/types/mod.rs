@@ -75,6 +75,12 @@ impl std::ops::Deref for Timestamp {
     }
 }
 
+impl Into<DateTime<Local>> for Timestamp {
+    fn into(self) -> DateTime<Local> {
+        self.datetime
+    }
+}
+
 #[derive(PartialEq, Debug)]
 pub struct HtmlEncoded(pub(crate) String);
 

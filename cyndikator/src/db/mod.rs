@@ -1,5 +1,4 @@
 use chrono::{DateTime, Local};
-use cyndikator_rss::Rss;
 use rusqlite::{config::DbConfig, params, Connection, OpenFlags};
 use url::Url;
 
@@ -80,20 +79,20 @@ impl Database {
         dir
     }
 
-    pub fn track(&mut self, url: &Url, rss: &Rss, ttl: Option<u32>) -> Result<(), Error> {
+    pub fn track(&mut self, url: &Url, title: &str, ttl: Option<u32>) -> Result<(), Error> {
         if let Some(ttl) = ttl {
             self.conn.execute(
                 "insert into feeds 
             (url, title, ttl) values 
             (?1, ?2, ?3)",
-                params![url.as_ref(), &rss.channel.title, ttl],
+                params![url.as_ref(), title, ttl],
             )?;
         } else {
             self.conn.execute(
                 "insert into feeds 
             (url, title) values 
             (?1, ?2)",
-                params![url.as_ref(), &rss.channel.title],
+                params![url.as_ref(), title],
             )?;
         }
 

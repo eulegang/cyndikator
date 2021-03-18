@@ -1,6 +1,7 @@
 use super::Dispatch;
 use crate::Action;
 use crate::Event;
+use chrono::{DateTime, Local, TimeZone};
 
 const TEST_TEXT: &str = "
 # we like rust
@@ -37,6 +38,7 @@ fn dispatch() {
         feed_url: String::from("https://lobste.rs/rss"),
         feed_title: Some("foobar".to_string()),
         feed_categories: vec![],
+        date: sample_date(),
     });
 
     assert_eq!(actions, vec![Action::Record]);
@@ -49,6 +51,7 @@ fn dispatch() {
         feed_url: String::from("https://lobste.rs/rss"),
         feed_title: Some("foobar".to_string()),
         feed_categories: vec![],
+        date: sample_date(),
     });
 
     assert_eq!(actions, vec![]);
@@ -63,6 +66,7 @@ fn dispatch() {
         feed_url: String::from("https://lobste.rs/rss"),
         feed_title: None,
         feed_categories: vec![],
+        date: sample_date(),
     });
 
     assert_eq!(actions, vec![Action::Notify]);
@@ -80,6 +84,7 @@ fn action_deduplication() {
         feed_url: String::from("https://lobste.rs/rss"),
         feed_title: None,
         feed_categories: vec![],
+        date: sample_date(),
     });
 
     assert_eq!(actions, vec![Action::Notify, Action::Record]);
@@ -99,6 +104,7 @@ fn action_deduplication() {
         ),
         feed_title: Some("Youtube".to_string()),
         feed_categories: vec![],
+        date: sample_date(),
     });
 
     assert_eq!(
@@ -136,6 +142,7 @@ title matches /rust/i {
         ),
         feed_title: Some("Youtube".to_string()),
         feed_categories: vec![],
+        date: sample_date(),
     });
 
     assert_eq!(actions, vec![Action::Record, Action::Notify,]);
@@ -168,7 +175,12 @@ title matches /rust/i {
         ),
         feed_title: Some("Youtube".to_string()),
         feed_categories: vec![],
+        date: sample_date(),
     });
 
     assert_eq!(actions, vec![Action::Record]);
+}
+
+fn sample_date() -> Option<DateTime<Local>> {
+    Some(Local.ymd(2000, 1, 15).and_hms(12, 30, 0))
 }

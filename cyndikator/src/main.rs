@@ -4,6 +4,7 @@ use structopt::StructOpt;
 mod cli;
 mod daemon;
 mod db;
+mod fetcher;
 mod ticker;
 mod tracker;
 mod view;

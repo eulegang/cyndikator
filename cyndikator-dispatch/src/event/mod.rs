@@ -1,3 +1,5 @@
+use chrono::{DateTime, Local};
+
 /// An event modeling a rss items and other such notification systems.
 pub struct Event {
     /// Url associated with the event
@@ -20,4 +22,7 @@ pub struct Event {
 
     /// Categories on the feed
     pub feed_categories: Vec<String>,
+
+    /// DateTime when the event took place
+    pub date: Option<DateTime<Local>>,
 }

@@ -1,17 +1,18 @@
 use crate::db::Database;
+use crate::fetcher::Fetcher;
 use crate::ticker::Ticker;
 use crate::tracker::{Trackee, Tracker};
+
 use chrono::Local;
 use futures::{future::join_all, select, StreamExt};
 use log::{debug, error, info, trace};
-use notify_rust::Notification;
-use std::process::Command;
 use std::time::Duration;
 use url::Url;
-use wait_timeout::ChildExt;
 
-use cyndikator_dispatch::{Action, Dispatch, Event};
-use cyndikator_rss::{self as rss, Rss};
+use cyndikator_dispatch::{Dispatch, Event};
+use perform::Invoker;
+
+mod perform;
 
 pub struct Daemon {
     db: Database,
@@ -49,12 +50,12 @@ impl Daemon {
             })
         }
 
-        let (rsses, errs) = sep(join_all(fetches).await);
+        let (events, errs) = sep(join_all(fetches).await);
         for (url, err) in errs {
             error!("error while tracking feed '{}': {}", url, err);
         }
 
-        self.dispatch(rsses).await;
+        self.dispatch(events).await;
 
         loop {
             select! {
@@ -74,57 +75,42 @@ impl Daemon {
                         tracker.track(trackee);
                     }
 
-                    let (rsses, errs) = sep(join_all(fetches).await);
+                    let (events, errs) = sep(join_all(fetches).await);
                     for (url, err) in errs {
                         error!("{} {}", err, url);
                     }
 
 
-                    self.dispatch(rsses).await;
+                    self.dispatch(events).await;
                 }
 
             }
         }
     }
 
-    async fn fetch(&self, url: Url) -> (Url, Result<Rss, rss::Error>) {
-        let rss = Rss::fetch(&url).await;
-        (url, rss)
+    async fn fetch(&self, url: Url) -> (Url, eyre::Result<Vec<Event>>) {
+        let mut fetcher = Fetcher::new(&url);
+        let events = fetcher.events().await;
+        (url, events)
     }
 
-    async fn dispatch(&mut self, feeds: Vec<(Url, Rss)>) {
-        for (url, feed) in feeds {
+    async fn dispatch(&mut self, feeds: Vec<(Url, Vec<Event>)>) {
+        for (url, events) in feeds {
             let last_fetch = self.db.last_fetch(url.as_str()).ok();
 
-            let chan = feed.channel;
-
-            for item in chan.items {
-                debug!("{:?} {:?}", &last_fetch, &item.pub_date);
-                match (&last_fetch, &item.pub_date) {
+            for event in events {
+                match (&last_fetch, &event.date) {
                     (Some(lf), Some(pd)) if lf >= pd => {
                         debug!(
                             "skipping {} {}",
-                            &chan.title,
-                            item.title.as_deref().unwrap_or("''")
+                            &event.feed_title.as_deref().unwrap_or("''"),
+                            event.title.as_deref().unwrap_or("''")
                         );
 
                         continue;
                     }
 
                     _ => (),
-                };
-
-                let description = item.description.map(Into::into);
-
-                let event = Event {
-                    url: item.link.clone(),
-                    title: item.title.clone(),
-                    categories: item.category.clone().unwrap_or_default(),
-                    description,
-
-                    feed_url: url.to_string(),
-                    feed_title: Some(chan.title.clone()),
-                    feed_categories: chan.category.clone().unwrap_or_default(),
                 };
 
                 debug!(
@@ -137,8 +123,9 @@ impl Daemon {
 
                 let actions = self.dispatch.dispatch(&event);
 
+                let mut invoker = Invoker::new(&mut self.db);
                 for action in &actions {
-                    self.perform(action, &event).await;
+                    invoker.invoke(action, &event);
                 }
             }
 
@@ -146,68 +133,6 @@ impl Daemon {
                 error!("failed to mark {} as clean: {}", &url, err);
             }
         }
-    }
-
-    async fn perform(&mut self, action: &Action, event: &Event) {
-        match action {
-            Action::Notify => {
-                debug!(
-                    "dispatching event {} {} {} {}",
-                    event.feed_title.as_deref().unwrap_or("''"),
-                    event.title.as_deref().unwrap_or("''"),
-                    event.feed_url,
-                    event.url.as_deref().unwrap_or("''"),
-                );
-
-                let res = Notification::new()
-                    .summary(event.title.as_deref().unwrap_or_else(|| "(untitled event)"))
-                    .body(event.url.as_deref().unwrap_or_else(|| ""))
-                    .show();
-
-                if let Err(err) = res {
-                    error!("error notifing {}", err)
-                }
-            }
-
-            Action::Record => {
-                debug!(
-                    "recording event {} {} {} {}",
-                    event.feed_title.as_deref().unwrap_or("''"),
-                    event.title.as_deref().unwrap_or("''"),
-                    event.feed_url,
-                    event.url.as_deref().unwrap_or("''"),
-                );
-
-                let res = self.db.record(
-                    &event.feed_url,
-                    event.title.as_deref(),
-                    event.url.as_deref(),
-                    event.description.as_deref(),
-                    &event.categories,
-                );
-
-                if let Err(err) = res {
-                    error!("error recording {}", err)
-                }
-            }
-
-            Action::Exec(cmd) => {
-                debug!(
-                    "execing event {} {} {} {} `{}`",
-                    event.feed_title.as_deref().unwrap_or("''"),
-                    event.title.as_deref().unwrap_or("''"),
-                    event.feed_url,
-                    event.url.as_deref().unwrap_or("''"),
-                    cmd,
-                );
-
-                let res = shell_exec(cmd);
-
-                if let Err(err) = res {
-                    error!("error execing {}", err)
-                }
-            }
-        };
     }
 }
 
@@ -223,12 +148,4 @@ fn sep<S, T, E>(v: Vec<(S, Result<T, E>)>) -> (Vec<(S, T)>, Vec<(S, E)>) {
     }
 
     (ts, es)
-}
-
-fn shell_exec(cmd: &str) -> Result<(), std::io::Error> {
-    let mut child = Command::new("sh").arg("-c").arg(cmd).spawn()?;
-
-    child.wait_timeout(Duration::from_secs(30))?;
-
-    Ok(())
 }
