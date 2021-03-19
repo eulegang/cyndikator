@@ -2,13 +2,13 @@ use super::Action;
 use crate::Event;
 use regex::Regex;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DispatchCase {
     pub cond: Condition,
     pub actions: Vec<ActionGen>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Condition {
     And(Box<Condition>, Box<Condition>),
     Or(Box<Condition>, Box<Condition>),
@@ -16,7 +16,7 @@ pub enum Condition {
     Op(Op),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ActionGen {
     Drop,
     Notify,
@@ -24,28 +24,28 @@ pub enum ActionGen {
     Exec(StringInterpol),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Op {
     Is(Expr, Expr),
     In(Expr, Expr),
-    Matches(Expr, Regex),
+    Matches(Expr, Re),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Expr {
     Str(StringInterpol),
     Var(Var),
     Null,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Value {
     Nil,
     Str(String),
     Strs(Vec<String>),
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Var {
     URL,
     Title,
@@ -56,10 +56,34 @@ pub enum Var {
     FeedCategories,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum StringInterpol {
     Inert(String),
     Live { lits: Vec<String>, vars: Vec<Var> },
+}
+
+#[derive(Debug)]
+pub struct Re {
+    regex: Regex,
+}
+
+impl PartialEq for Re {
+    fn eq(&self, other: &Re) -> bool {
+        self.regex.as_str() == other.regex.as_str()
+    }
+}
+
+impl From<Regex> for Re {
+    fn from(regex: Regex) -> Re {
+        Re { regex }
+    }
+}
+
+impl std::ops::Deref for Re {
+    type Target = Regex;
+    fn deref(&self) -> &Regex {
+        &self.regex
+    }
 }
 
 impl Var {

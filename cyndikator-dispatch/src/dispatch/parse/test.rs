@@ -11,4 +11,24 @@ fn test_cond() {
     let (rest, condition) = Condition::parse(&tokens).unwrap();
 
     assert!(rest.is_empty());
+
+    assert_eq!(
+        condition,
+        Condition::Or(
+            Box::new(Condition::And(
+                Box::new(Condition::Op(Op::Is(
+                    Expr::Var(Var::FeedTitle),
+                    Expr::Str(StringInterpol::Inert("Lobsters".to_string()))
+                ))),
+                Box::new(Condition::Op(Op::Is(
+                    Expr::Var(Var::FeedTitle),
+                    Expr::Str(StringInterpol::Inert("Youtube".to_string()))
+                )))
+            )),
+            Box::new(Condition::Op(Op::Is(
+                Expr::Var(Var::FeedTitle),
+                Expr::Str(StringInterpol::Inert("Hacker News".to_string()))
+            )))
+        ),
+    );
 }

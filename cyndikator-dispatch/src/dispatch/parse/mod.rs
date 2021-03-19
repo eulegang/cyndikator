@@ -186,7 +186,7 @@ impl Parsable for Op {
             Token::Ident { content: "matches" } => {
                 let (tokens, rh) = Regex::parse(tokens)?;
 
-                Ok((tokens, Op::Matches(lh, rh)))
+                Ok((tokens, Op::Matches(lh, rh.into())))
             }
 
             _ => {
