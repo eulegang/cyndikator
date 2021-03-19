@@ -182,6 +182,89 @@ title matches /rust/i {
 }
 
 #[test]
+#[ignore]
+fn parens() {
+    let dispatch = Dispatch::parse(
+        "
+feed_title is 'Youtube' and title matches /rust/i or title matches /zig/i {
+    record
+    drop
+}
+
+'rust' in categories {
+    notify
+}
+    ",
+    )
+    .unwrap();
+
+    /*
+        let dispatch = Dispatch::parse(
+            "
+    feed_title is 'Youtube' or title matches /rust/i and title matches /zig/i {
+        record
+        drop
+    }
+
+    'rust' in categories {
+        notify
+    }
+
+    ",
+        )
+        .unwrap();
+        */
+    dbg!(&dispatch);
+
+    let actions = dispatch.dispatch(&Event {
+        url: None,
+        description: Some(String::new()),
+        title: Some("foobar".to_string()),
+        categories: vec!["rust".to_string()],
+        feed_url: String::from(
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
+        ),
+        feed_title: Some("Youtube".to_string()),
+        feed_categories: vec![],
+        date: sample_date(),
+    });
+
+    assert_eq!(actions, vec![Action::Record]);
+
+    let actions = dispatch.dispatch(&Event {
+        url: None,
+        description: Some(String::new()),
+        title: Some("foobar".to_string()),
+        categories: vec!["rust".to_string()],
+        feed_url: String::from(
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
+        ),
+        feed_title: Some("Lobsters".to_string()),
+        feed_categories: vec![],
+        date: sample_date(),
+    });
+
+    assert_eq!(actions, vec![Action::Notify]);
+
+    let actions = dispatch.dispatch(&Event {
+        url: None,
+        description: Some(String::new()),
+        title: Some("Using rust and zig to blah".to_string()),
+        categories: vec!["rust".to_string()],
+        feed_url: String::from(
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
+        ),
+        feed_title: Some("Lobsters".to_string()),
+        feed_categories: vec![],
+        date: sample_date(),
+    });
+
+    assert_eq!(actions, vec![Action::Record]);
+
+    assert!(false);
+}
+
+#[test]
 fn null() {
     let dispatch = Dispatch::parse(
         "

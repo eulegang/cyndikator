@@ -9,6 +9,9 @@ use nom::{
     IResult,
 };
 
+#[cfg(test)]
+mod test;
+
 pub(crate) trait Parsable: Sized {
     fn parse<'input, 'tokens>(
         tokens: &'tokens [Token<'input>],
@@ -111,17 +114,17 @@ impl Condition {
     ) -> Result<(&'tokens [Token<'input>], Self), ParseError> {
         match next(tokens)? {
             (tokens, Token::Begin { sym: '(' }) => {
-                let (tokens, op) = Op::parse(tokens)?;
+                let (tokens, cond) = Condition::parse(tokens)?;
                 let (tokens, end) = next(tokens)?;
 
-                if !matches!(end, Token::Begin { sym: ')' }) {
+                if !matches!(end, Token::End { sym: ')' }) {
                     return Err(ParseError::InvalidExpectation {
                         reality: format!("{:?}", end),
                         expect: "end parenthesis".to_string(),
                     });
                 }
 
-                Ok((tokens, Condition::Op(op)))
+                Ok((tokens, cond))
             }
 
             _ => {

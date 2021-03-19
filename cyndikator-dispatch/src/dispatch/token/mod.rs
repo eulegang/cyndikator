@@ -54,6 +54,21 @@ impl<'a> Token<'a> {
         .map(|s| s.1)
     }
 
+    pub(crate) fn tokenize_significant(input: &'a str) -> Result<Vec<Token<'a>>, ParseError> {
+        let mut tokens = Token::tokenize(input)?;
+
+        let mut i = 0;
+        while i < tokens.len() {
+            if !tokens[i].is_significant() {
+                tokens.remove(i);
+            } else {
+                i += 1;
+            }
+        }
+
+        Ok(tokens)
+    }
+
     pub(crate) fn is_significant(&self) -> bool {
         !matches!(self, Token::Space | Token::Comment { .. })
     }
@@ -110,7 +125,7 @@ fn parse_context(input: &str) -> IResult<&str, Token> {
     match sym {
         '{' => Ok((input, Token::Begin { sym })),
         '}' => Ok((input, Token::End { sym })),
-        '(' => Ok((input, Token::End { sym })),
+        '(' => Ok((input, Token::Begin { sym })),
         ')' => Ok((input, Token::End { sym })),
 
         _ => unreachable!(),

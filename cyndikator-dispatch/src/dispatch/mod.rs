@@ -14,6 +14,7 @@ pub(crate) mod runtime;
 mod test;
 
 /// A set of rules to determine what [Action]s should be taken given an [Event]
+#[derive(Debug)]
 pub struct Dispatch {
     cases: Vec<runtime::DispatchCase>,
 }
@@ -56,16 +57,7 @@ impl Dispatch {
 
     /// Parse the DSL into a [Dispatch]
     pub fn parse(input: &str) -> Result<Dispatch, ParseError> {
-        let mut tokens = Token::tokenize(input)?;
-
-        let mut i = 0;
-        while i < tokens.len() {
-            if !tokens[i].is_significant() {
-                tokens.remove(i);
-            } else {
-                i += 1;
-            }
-        }
+        let mut tokens = Token::tokenize_significant(input)?;
 
         let mut tokens = &tokens[..];
         let mut cases = Vec::new();
