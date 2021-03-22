@@ -182,11 +182,10 @@ title matches /rust/i {
 }
 
 #[test]
-#[ignore]
 fn parens() {
     let dispatch = Dispatch::parse(
         "
-feed_title is 'Youtube' and title matches /rust/i or title matches /zig/i {
+feed_title is 'Youtube' and (title matches /rust/i or title matches /zig/i) {
     record
     drop
 }
@@ -198,28 +197,10 @@ feed_title is 'Youtube' and title matches /rust/i or title matches /zig/i {
     )
     .unwrap();
 
-    /*
-        let dispatch = Dispatch::parse(
-            "
-    feed_title is 'Youtube' or title matches /rust/i and title matches /zig/i {
-        record
-        drop
-    }
-
-    'rust' in categories {
-        notify
-    }
-
-    ",
-        )
-        .unwrap();
-        */
-    dbg!(&dispatch);
-
     let actions = dispatch.dispatch(&Event {
         url: None,
         description: Some(String::new()),
-        title: Some("foobar".to_string()),
+        title: Some("Rust / zig arbitrary title".to_string()),
         categories: vec!["rust".to_string()],
         feed_url: String::from(
             "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ",
@@ -259,9 +240,7 @@ feed_title is 'Youtube' and title matches /rust/i or title matches /zig/i {
         date: sample_date(),
     });
 
-    assert_eq!(actions, vec![Action::Record]);
-
-    assert!(false);
+    assert_eq!(actions, vec![Action::Notify]);
 }
 
 #[test]

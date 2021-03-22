@@ -57,7 +57,7 @@ impl Dispatch {
 
     /// Parse the DSL into a [Dispatch]
     pub fn parse(input: &str) -> Result<Dispatch, ParseError> {
-        let mut tokens = Token::tokenize_significant(input)?;
+        let tokens = Token::tokenize_significant(input)?;
 
         let mut tokens = &tokens[..];
         let mut cases = Vec::new();

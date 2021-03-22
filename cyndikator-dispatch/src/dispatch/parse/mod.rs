@@ -68,9 +68,9 @@ impl Condition {
     ) -> Result<(&'tokens [Token<'input>], Self), ParseError> {
         let (tokens, lh) = Condition::parse_and(tokens)?;
 
-        match next(tokens)? {
-            (tokens, Token::Ident { content: "or" }) => {
-                let (tokens, rh) = Condition::parse(tokens)?;
+        match next(tokens) {
+            Ok((tokens, Token::Ident { content: "or" })) => {
+                let (tokens, rh) = Condition::parse_or(tokens)?;
 
                 Ok((tokens, Condition::Or(Box::new(lh), Box::new(rh))))
             }
@@ -84,9 +84,9 @@ impl Condition {
     ) -> Result<(&'tokens [Token<'input>], Self), ParseError> {
         let (tokens, lh) = Condition::parse_not(tokens)?;
 
-        match next(tokens)? {
-            (tokens, Token::Ident { content: "and" }) => {
-                let (tokens, rh) = Condition::parse(tokens)?;
+        match next(tokens) {
+            Ok((tokens, Token::Ident { content: "and" })) => {
+                let (tokens, rh) = Condition::parse_and(tokens)?;
 
                 Ok((tokens, Condition::And(Box::new(lh), Box::new(rh))))
             }
@@ -98,9 +98,9 @@ impl Condition {
     fn parse_not<'input, 'tokens>(
         tokens: &'tokens [Token<'input>],
     ) -> Result<(&'tokens [Token<'input>], Self), ParseError> {
-        match next(tokens)? {
-            (tokens, Token::Ident { content: "not" }) => {
-                let (tokens, sub) = Condition::parse_op(tokens)?;
+        match next(tokens) {
+            Ok((tokens, Token::Ident { content: "not" })) => {
+                let (tokens, sub) = Condition::parse_not(tokens)?;
 
                 Ok((tokens, Condition::Not(Box::new(sub))))
             }
@@ -112,8 +112,8 @@ impl Condition {
     fn parse_op<'input, 'tokens>(
         tokens: &'tokens [Token<'input>],
     ) -> Result<(&'tokens [Token<'input>], Self), ParseError> {
-        match next(tokens)? {
-            (tokens, Token::Begin { sym: '(' }) => {
+        match next(tokens) {
+            Ok((tokens, Token::Begin { sym: '(' })) => {
                 let (tokens, cond) = Condition::parse(tokens)?;
                 let (tokens, end) = next(tokens)?;
 
