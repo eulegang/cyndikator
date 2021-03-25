@@ -3,6 +3,8 @@ name = "cyndikator-rss"
 version = "0.1.0"
 authors = ["eulegang <eulegang@eulegang.dev>"]
 edition = "2018"
+description = "a rss parsing crate"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
