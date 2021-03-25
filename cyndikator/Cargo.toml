@@ -34,6 +34,6 @@ open = { version = "1.5" }
 log = { version = "0.4" }
 pretty_env_logger = { version = "0.4" }
 
-cyndikator-rss = { path = "../cyndikator-rss" }
-cyndikator-atom = { path = "../cyndikator-atom" }
-cyndikator-dispatch = { path = "../cyndikator-dispatch" }
+cyndikator-rss = { path = "../cyndikator-rss", version = "0.1.0" }
+cyndikator-atom = { path = "../cyndikator-atom", version = "0.1.0" }
+cyndikator-dispatch = { path = "../cyndikator-dispatch", version = "0.1.0" }
