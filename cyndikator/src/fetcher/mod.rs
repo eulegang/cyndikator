@@ -1,89 +1,104 @@
 use eyre::bail;
+use feed_rs::{model::Feed, parser::parse_with_uri};
 use url::Url;
-
-mod atom;
-mod rss;
 
 use cyndikator_dispatch::Event;
 
 pub struct Fetcher {
     url: Url,
-    content: Option<String>,
+    feed: Option<Feed>,
 }
 
 impl Fetcher {
     pub fn new(url: &Url) -> Fetcher {
-        let content = None;
+        let feed = None;
         let url = url.clone();
 
-        Fetcher { url, content }
+        Fetcher { url, feed }
     }
 
     pub async fn title(&mut self) -> eyre::Result<String> {
         self.fill_cache().await?;
-        let text = self.content.as_ref().unwrap();
 
-        atom::Format.or(rss::Format).title(text)
+        Ok(self
+            .feed
+            .as_ref()
+            .unwrap()
+            .title
+            .as_ref()
+            .map(|e| e.content.as_str())
+            .unwrap_or("Untitled")
+            .to_string())
     }
 
     pub async fn events(&mut self) -> eyre::Result<Vec<Event>> {
         self.fill_cache().await?;
-        let text = self.content.as_ref().unwrap();
 
-        atom::Format.or(rss::Format).events(&self.url, text)
+        let feed = self.feed.as_ref().unwrap();
+
+        let mut events = Vec::new();
+        for entry in &feed.entries {
+            let feed_url = self.url.as_str().to_string();
+            let feed_title = feed.title.as_ref().map(|t| t.content.clone());
+            let feed_categories = feed.categories.iter().map(|c| c.term.clone()).collect();
+
+            let title = entry.title.as_ref().map(|t| t.content.clone());
+            let url = entry.links.first().map(|l| l.href.clone());
+            let categories = entry.categories.iter().map(|c| c.term.clone()).collect();
+            let date = entry.published.map(|d| d.into());
+
+            let description = entry
+                .content
+                .as_ref()
+                .and_then(|c| c.body.as_ref())
+                .map(|s| s.to_string());
+
+            events.push(Event {
+                url,
+                title,
+                categories,
+                description,
+                date,
+
+                feed_url,
+                feed_title,
+                feed_categories,
+            })
+        }
+
+        Ok(events)
     }
 
     async fn fill_cache<'a>(&'a mut self) -> eyre::Result<()> {
-        if self.content.is_none() {
+        if self.feed.is_none() {
             let url = self.url.clone();
-            match url.scheme() {
+            let text = match url.scheme() {
                 "https" | "http" => {
                     let resp = reqwest::get(url).await?.error_for_status()?;
-                    let text = resp.text().await?;
-                    self.content = Some(text);
+                    resp.text().await?
                 }
 
                 a => bail!("invalid scheme {}", a),
-            }
+            };
+
+            self.feed = Some(parse_with_uri(text.as_bytes(), Some(self.url.as_str()))?);
         }
 
         Ok(())
     }
 }
 
-trait FetcherFormat {
-    fn title(&self, content: &str) -> eyre::Result<String>;
-    fn events(&self, url: &Url, content: &str) -> eyre::Result<Vec<Event>>;
+#[cfg(test)]
+#[test]
+#[ignore]
+fn show_lobster_feed() {
+    let url = Url::parse("https://lobste.rs/rss").unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let mut fetcher = Fetcher::new(&url);
 
-    fn or<F: FetcherFormat>(self, next: F) -> Composite<Self, F>
-    where
-        Self: Sized,
-    {
-        let first = self;
-        let second = next;
-        Composite { first, second }
-    }
-}
+    rt.block_on(async {
+        dbg!(fetcher.events().await.unwrap());
+    });
 
-struct Composite<A: FetcherFormat + Sized, B: FetcherFormat + Sized> {
-    first: A,
-    second: B,
-}
-
-impl<A, B> FetcherFormat for Composite<A, B>
-where
-    A: FetcherFormat + Sized,
-    B: FetcherFormat + Sized,
-{
-    fn title(&self, content: &str) -> eyre::Result<String> {
-        self.first
-            .title(content)
-            .or_else(|_| self.second.title(content))
-    }
-
-    fn events(&self, url: &Url, content: &str) -> eyre::Result<Vec<Event>> {
-        self.first
-            .events(url, content)
-            .or_else(|_| self.second.events(url, content))
-    }
+    panic!("just showing events");
 }

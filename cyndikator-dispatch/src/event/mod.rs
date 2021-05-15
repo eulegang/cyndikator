@@ -1,6 +1,7 @@
 use chrono::{DateTime, Local};
 
 /// An event modeling a rss items and other such notification systems.
+#[derive(Debug)]
 pub struct Event {
     /// Url associated with the event
     pub url: Option<String>,

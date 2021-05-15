@@ -274,11 +274,10 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "crossterm",
- "cyndikator-atom",
  "cyndikator-dispatch",
- "cyndikator-rss",
  "dirs 3.0.1",
  "eyre",
+ "feed-rs",
  "futures",
  "log",
  "nom",
@@ -297,36 +296,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "cyndikator-atom"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "html-escape",
- "quick-xml",
- "serde",
- "thiserror",
-]
-
-[[package]]
 name = "cyndikator-dispatch"
 version = "0.1.0"
 dependencies = [
  "chrono",
  "nom",
  "regex",
-]
-
-[[package]]
-name = "cyndikator-rss"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "html-escape",
- "quick-xml",
- "reqwest",
- "serde",
- "thiserror",
- "url",
 ]
 
 [[package]]
@@ -443,6 +418,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca5faf057445ce5c9d4329e382b2ce7ca38550ef3b73a5348362d5f24e0c7fe3"
 dependencies = [
  "instant",
+]
+
+[[package]]
+name = "feed-rs"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd6ed95fc2e8bbc98f55ff5bb2e49183c2b16cf367bf4b67081182a3a9b0d231"
+dependencies = [
+ "chrono",
+ "lazy_static",
+ "mime",
+ "quick-xml",
+ "regex",
+ "serde",
+ "serde_json",
+ "siphasher",
+ "url",
+ "uuid",
 ]
 
 [[package]]
@@ -668,15 +661,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "322f4de77956e22ed0e5032c359a0f1273f1f7f0d79bfa3b8ffbc730d7fbcc5c"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "html-escape"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d348900ce941b7474395ba922ed3735a517df4546a2939ddb416ce85eeaa988e"
-dependencies = [
- "utf8-width",
 ]
 
 [[package]]
@@ -1300,12 +1284,12 @@ checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
 name = "quick-xml"
-version = "0.21.0"
+version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0452695941410a58c8ce4391707ba9bad26a247173bd9886a05a5e8a8babec75"
+checksum = "26aab6b48e2590e4a64d1ed808749ba06257882b461d01ca71baeb747074a6dd"
 dependencies = [
+ "encoding_rs",
  "memchr",
- "serde",
 ]
 
 [[package]]
@@ -2036,10 +2020,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "utf8-width"
-version = "0.1.4"
+name = "uuid"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9071ac216321a4470a69fb2b28cfc68dcd1a39acd877c8be8e014df6772d8efa"
+checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
+dependencies = [
+ "getrandom 0.2.2",
+]
 
 [[package]]
 name = "vcpkg"
