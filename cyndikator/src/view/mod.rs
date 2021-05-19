@@ -84,6 +84,7 @@ impl View {
 
         let raw = Raw::default();
 
+        AltScreen::Enter.draw(&mut out)?;
         Clear.draw(&mut out)?;
         ShowCur(false).draw(&mut out)?;
 
@@ -91,6 +92,7 @@ impl View {
 
         let _ = Clear.draw(&mut out);
         let _ = ShowCur(true).draw(&mut out);
+        let _ = AltScreen::Exit.draw(&mut out)?;
 
         drop(raw);
         out.flush()?;
