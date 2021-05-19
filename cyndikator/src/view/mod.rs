@@ -3,10 +3,12 @@ use crossterm::{event::read, terminal};
 use std::io::{stdout, Write};
 
 use draw::*;
+use raw::Raw;
 use record::Cache;
 
 mod draw;
 mod inter;
+mod raw;
 mod record;
 
 pub struct View {
@@ -94,21 +96,5 @@ impl View {
         out.flush()?;
 
         res
-    }
-}
-
-struct Raw;
-
-impl Default for Raw {
-    fn default() -> Raw {
-        let _ = terminal::enable_raw_mode();
-
-        Raw
-    }
-}
-
-impl Drop for Raw {
-    fn drop(&mut self) {
-        let _ = terminal::disable_raw_mode();
     }
 }
