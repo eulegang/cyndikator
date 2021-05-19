@@ -1,6 +1,7 @@
 use crate::db::Database;
 use crossterm::{event::read, terminal};
 use std::io::{stdout, Write};
+use std::panic;
 
 use draw::*;
 use raw::Raw;
@@ -104,6 +105,18 @@ impl View {
         Clear.draw(&mut out)?;
         ShowCur(false).draw(&mut out)?;
 
+        panic::set_hook(Box::new(|info| {
+            let mut out = stdout();
+
+            let _ = Clear.draw(&mut out);
+            let _ = ShowCur(true).draw(&mut out);
+            let _ = AltScreen::Exit.draw(&mut out);
+            let _ = out.flush();
+            let _ = terminal::disable_raw_mode();
+
+            println!("{}", info);
+        }));
+
         let res = self.render(&mut out);
 
         let _ = Clear.draw(&mut out);
@@ -112,6 +125,8 @@ impl View {
 
         drop(raw);
         out.flush()?;
+
+        let _ = panic::take_hook();
 
         res
     }
