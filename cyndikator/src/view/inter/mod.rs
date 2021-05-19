@@ -3,7 +3,7 @@ use crossterm::{
     Result,
 };
 
-use super::Action;
+use super::{Action, Position, ScrollUnit};
 
 pub struct Inter {
     pub height: u16,
@@ -39,104 +39,50 @@ impl Inter {
 
     fn inter_key(&mut self, event: &KeyEvent) -> Result<Action> {
         let mag = self.mag.parse::<u16>().ok();
+        let def_mag = mag.unwrap_or(1);
 
-        match event.code {
-            KeyCode::Char('q') => return Ok(Action::Quit),
-            KeyCode::Char('j') | KeyCode::Down => {
-                self.move_down(mag.unwrap_or(1));
-                self.mag.clear();
-            }
+        if clearable(&event.code) {
+            self.mag.clear();
+        }
 
-            KeyCode::Char('k') | KeyCode::Up => {
-                self.move_up(mag.unwrap_or(1));
-                self.mag.clear();
-            }
+        let action = match event.code {
+            KeyCode::Char('q') => Action::Quit,
+            KeyCode::Char('j') | KeyCode::Down => Action::RelDown(def_mag, ScrollUnit::Line),
+            KeyCode::Char('k') | KeyCode::Up => Action::RelUp(def_mag, ScrollUnit::Line),
+            KeyCode::Char('g') => Action::Goto(Position::Abs(def_mag.into())),
 
-            KeyCode::Char('g') => {
-                self.goto(mag.unwrap_or(1) as u32);
-                self.mag.clear();
-            }
+            KeyCode::Char('d') => Action::RelDown(def_mag, ScrollUnit::Half),
+            KeyCode::Char('u') => Action::RelUp(def_mag, ScrollUnit::Half),
+            KeyCode::Char('f') => Action::RelDown(def_mag, ScrollUnit::Page),
+            KeyCode::Char('b') => Action::RelUp(def_mag, ScrollUnit::Page),
 
+            KeyCode::Char('D') => Action::Delete,
+            KeyCode::Char('U') => Action::Undo,
             KeyCode::Char('G') => {
-                self.offset = mag
-                    .map(|i| i.checked_sub(1).unwrap_or(1))
-                    .unwrap_or(u16::MAX);
-                self.mag.clear();
-            }
+                let pos = mag
+                    .map(|i| Position::Abs(i.checked_sub(1).unwrap_or(1).into()))
+                    .unwrap_or(Position::Last);
 
-            KeyCode::Char('d') => {
-                self.move_down(mag.unwrap_or(1) * self.height / 2);
-                self.mag.clear();
+                Action::Goto(pos)
             }
-
-            KeyCode::Char('u') => {
-                self.move_up(mag.unwrap_or(1) * self.height / 2);
-                self.mag.clear();
-            }
-
-            KeyCode::Char('f') => {
-                self.move_down(mag.unwrap_or(1) * self.height);
-                self.mag.clear();
-            }
-
-            KeyCode::Char('b') => {
-                self.move_up(mag.unwrap_or(1) * self.height);
-                self.mag.clear();
-            }
-
-            KeyCode::Char('D') => {
-                self.mag.clear();
-                return Ok(Action::Delete);
-            }
-
-            KeyCode::Char('U') => {
-                self.mag.clear();
-                return Ok(Action::Undo);
-            }
+            KeyCode::Enter => Action::Open,
 
             KeyCode::Char(ch) if ('0'..='9').contains(&ch) => {
                 self.mag.push(ch);
+                Action::Noop
             }
 
-            KeyCode::Enter => {
-                self.mag.clear();
-                return Ok(Action::Open);
-            }
-
-            _ => (),
+            _ => Action::Noop,
         };
 
-        Ok(Action::Noop)
+        Ok(action)
     }
+}
 
-    fn move_down(&mut self, amount: u16) {
-        self.offset += amount;
-
-        if self.offset >= self.height {
-            self.base += (self.offset - self.height + 1) as u32;
-            self.offset = self.height - 1;
-        }
-    }
-
-    fn move_up(&mut self, amount: u16) {
-        let diff = if amount > self.offset {
-            amount - self.offset
-        } else {
-            0
-        };
-
-        self.offset = self.offset.checked_sub(amount).unwrap_or(0);
-        self.base = self.base.checked_sub(diff as u32).unwrap_or(0);
-    }
-
-    fn goto(&mut self, line: u32) {
-        let adjusted = line.checked_sub(1).unwrap_or(0);
-
-        if adjusted < self.base {
-            self.base = adjusted;
-            self.offset = 0;
-        } else {
-            self.offset = (adjusted - self.base) as u16;
-        }
+fn clearable(code: &KeyCode) -> bool {
+    if let KeyCode::Char(ch) = code {
+        ('0'..='9').contains(ch)
+    } else {
+        false
     }
 }

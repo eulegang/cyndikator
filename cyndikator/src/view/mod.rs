@@ -5,17 +5,37 @@ use std::io::{stdout, Write};
 use draw::*;
 use raw::Raw;
 use record::Cache;
+use stat::State;
 
 mod draw;
 mod inter;
 mod raw;
 mod record;
+mod stat;
 
 pub struct View {
     db: Database,
 }
 
+pub trait Inducable<T> {
+    fn induce(&mut self, elem: &T);
+}
+
+pub enum ScrollUnit {
+    Line,
+    Half,
+    Page,
+}
+
+pub enum Position {
+    Abs(u32),
+    Last,
+}
+
 pub enum Action {
+    RelUp(u16, ScrollUnit),
+    RelDown(u16, ScrollUnit),
+    Goto(Position),
     Delete,
     Undo,
     Open,
@@ -32,16 +52,22 @@ impl View {
         let (_, height) = terminal::size()?;
         let mut cache = Cache::new(self.db);
         let mut inter = inter::Inter::new(height, 0);
+        let mut state = State::new(height);
 
         loop {
-            let selected = inter.offset;
-            let entries = cache.window(inter.base, height as u32)?;
+            let selected = state.offset();
+            let entries = cache.window(state.base(), height as u32)?;
             Full { selected, entries }.draw(out)?;
             out.flush()?;
 
             let e = read()?;
 
-            match inter.interact(&e)? {
+            state.induce(&e);
+
+            let action = inter.interact(&e)?;
+            state.induce(&action);
+
+            match action {
                 Action::Open => {
                     if let Some(url) = &entries
                         .get(inter.offset as usize)
@@ -59,21 +85,11 @@ impl View {
                     cache.undo();
                 }
 
-                Action::Noop => (),
                 Action::Quit => break,
+                _ => (),
             };
 
-            let total = cache.total();
-            if inter.offset as u32 + inter.base >= total {
-                inter.base = total.checked_sub(inter.height as u32).unwrap_or(0);
-
-                inter.offset = total
-                    .checked_sub(inter.base)
-                    .unwrap_or(0)
-                    .checked_sub(1)
-                    .unwrap_or(0) as u16;
-            }
-            inter.offset = inter.offset.min(cache.total() as u16 - 1);
+            state.recalc(cache.total());
         }
 
         Ok(())
