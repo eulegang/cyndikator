@@ -19,10 +19,6 @@ impl State {
         }
     }
 
-    pub fn height(&self) -> u16 {
-        self.height
-    }
-
     pub fn offset(&self) -> u16 {
         self.offset
     }
