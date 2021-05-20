@@ -27,6 +27,10 @@ impl State {
         self.base
     }
 
+    pub fn abs(&self) -> u32 {
+        self.base + self.offset as u32
+    }
+
     pub fn recalc(&mut self, total: u32) {
         if self.offset as u32 + self.base >= total {
             self.base = total.checked_sub(self.height as u32).unwrap_or(0);

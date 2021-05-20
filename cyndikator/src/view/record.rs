@@ -38,6 +38,12 @@ impl Cache {
         Ok(&self.cache[rel..rel_end])
     }
 
+    pub fn hot_load(&self, abs: u32) -> Option<&Entry> {
+        let idx = abs.checked_sub(self.loc)?;
+
+        self.cache.get(idx as usize)
+    }
+
     fn needs_load(&self, offset: u32, win: u32) -> bool {
         if self.cache.capacity() == 0 {
             return true;
@@ -64,7 +70,12 @@ impl Cache {
         Ok(())
     }
 
-    pub fn delete(&mut self, offset: usize) {
+    pub fn delete(&mut self, offset: u32) {
+        let offset = match offset.checked_sub(self.loc) {
+            Some(s) => s as usize,
+            None => return,
+        };
+
         if offset >= self.cache.len() {
             return;
         }

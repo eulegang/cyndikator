@@ -62,7 +62,6 @@ impl View {
             out.flush()?;
 
             let e = read()?;
-
             state.induce(&e);
 
             let action = inter.interact(&e)?;
@@ -70,16 +69,13 @@ impl View {
 
             match action {
                 Action::Open => {
-                    if let Some(url) = &entries
-                        .get(inter.offset as usize)
-                        .and_then(|e| e.url.as_ref())
-                    {
+                    if let Some(url) = cache.hot_load(state.abs()).and_then(|e| e.url.as_ref()) {
                         let _ = open::that_in_background(url);
                     }
                 }
 
                 Action::Delete => {
-                    cache.delete(inter.offset as usize);
+                    cache.delete(state.abs());
                 }
 
                 Action::Undo => {
