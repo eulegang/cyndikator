@@ -52,7 +52,7 @@ impl View {
     fn render(self, out: &mut impl Write) -> eyre::Result<()> {
         let (_, height) = terminal::size()?;
         let mut cache = Cache::new(self.db);
-        let mut inter = inter::Inter::new(height, 0);
+        let mut inter = inter::Inter::new();
         let mut state = State::new(height);
 
         loop {

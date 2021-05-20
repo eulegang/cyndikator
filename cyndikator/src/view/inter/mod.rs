@@ -6,30 +6,19 @@ use crossterm::{
 use super::{Action, Position, ScrollUnit};
 
 pub struct Inter {
-    pub height: u16,
-    pub offset: u16,
-    pub base: u32,
     pub mag: String,
 }
 
 impl Inter {
-    pub fn new(height: u16, base: u32) -> Inter {
-        let offset = 0;
+    pub fn new() -> Inter {
         let mag = String::new();
 
-        Inter {
-            offset,
-            height,
-            base,
-            mag,
-        }
+        Inter { mag }
     }
 
     pub fn interact(&mut self, event: &Event) -> Result<Action> {
         match event {
             Event::Key(ke) => return self.inter_key(ke),
-
-            Event::Resize(_, height) => self.height = *height,
 
             _ => (),
         };
