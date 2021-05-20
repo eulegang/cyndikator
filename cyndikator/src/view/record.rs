@@ -51,6 +51,7 @@ impl Cache {
     fn load(&mut self, offset: u32, win: u32) -> Result<(), Error> {
         let mask = Cache::FETCH_SIZE - 1;
         let region = offset & !mask;
+        self.loc = region;
 
         let mut shift = 0;
         while offset + win > region + (Cache::FETCH_SIZE << shift) {
