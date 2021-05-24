@@ -1,5 +1,6 @@
 use eyre::bail;
 use feed_rs::{model::Feed, parser::parse_with_uri};
+use std::fs::read_to_string;
 use url::Url;
 
 use cyndikator_dispatch::Event;
@@ -77,6 +78,8 @@ impl Fetcher {
                     let resp = reqwest::get(url).await?.error_for_status()?;
                     resp.text().await?
                 }
+
+                "file" => read_to_string(url.path())?,
 
                 a => bail!("invalid scheme {}", a),
             };
