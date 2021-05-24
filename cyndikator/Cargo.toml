@@ -1,6 +1,6 @@
 [package]
 name = "cyndikator"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["eulegang <eulegang@eulegang.dev>"]
 edition = "2018"
 license = "MIT"
@@ -36,6 +36,4 @@ pretty_env_logger = { version = "0.4" }
 
 feed-rs = "0.6"
 
-#cyndikator-rss = { path = "../cyndikator-rss", version = "0.1.0" }
-#cyndikator-atom = { path = "../cyndikator-atom", version = "0.1.0" }
 cyndikator-dispatch = { path = "../cyndikator-dispatch", version = "0.1.0" }
