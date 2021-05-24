@@ -1,9 +1,13 @@
 use crate::db::Database;
-use crossterm::{event::read, terminal};
+use crossterm::{
+    event::{read, Event},
+    terminal,
+};
 use std::io::{stdout, Write};
 use std::panic;
 
 use draw::*;
+use inter::Mode;
 use raw::Raw;
 use record::Cache;
 use stat::State;
@@ -33,6 +37,8 @@ pub enum Position {
     Last,
 }
 
+pub struct Indexes(Vec<u32>);
+
 pub enum Action {
     RelUp(u16, ScrollUnit),
     RelDown(u16, ScrollUnit),
@@ -42,6 +48,12 @@ pub enum Action {
     Open,
     Noop,
     Quit,
+
+    StartSearch,
+    SearchPreview(String),
+    SetSearch(String),
+    Next,
+    Prev,
 }
 
 impl View {
@@ -50,21 +62,31 @@ impl View {
     }
 
     fn render(self, out: &mut impl Write) -> eyre::Result<()> {
-        let (_, height) = terminal::size()?;
+        let mut state = State::new(terminal::size()?.1);
         let mut cache = Cache::new(self.db);
-        let mut inter = inter::Inter::new();
-        let mut state = State::new(height);
+        let mut inter = inter::Inter::default();
 
         loop {
             let selected = state.offset();
-            let entries = cache.window(state.base(), height as u32)?;
-            Full { selected, entries }.draw(out)?;
+            let entries = cache.window(state.base(), state.height() as u32)?;
+            Full {
+                selected,
+                entries,
+                status: inter.status(),
+            }
+            .draw(out)?;
             out.flush()?;
 
             let e = read()?;
             state.induce(&e);
 
-            let action = inter.interact(&e)?;
+            let action = match e {
+                Event::Key(e) => inter.handle(&e)?,
+                _ => {
+                    state.recalc(cache.total());
+                    continue;
+                }
+            };
             state.induce(&action);
 
             match action {
@@ -83,8 +105,30 @@ impl View {
                 }
 
                 Action::Quit => break,
+
+                Action::SetSearch(ref search) => {
+                    let idx = &cache.search_indexes(search)?;
+                    state.goto_next(idx);
+                }
+
+                Action::Next => {
+                    if let Some(search) = state.search() {
+                        let idx = &cache.search_indexes(search)?;
+                        state.goto_next(idx);
+                    }
+                }
+
+                Action::Prev => {
+                    if let Some(search) = state.search() {
+                        let idx = &cache.search_indexes(search)?;
+                        state.goto_prev(idx);
+                    }
+                }
+
                 _ => (),
             };
+
+            inter.induce(&action);
 
             state.recalc(cache.total());
         }
@@ -123,6 +167,33 @@ impl View {
         out.flush()?;
 
         let _ = panic::take_hook();
+
+        res
+    }
+}
+
+impl Indexes {
+    fn next(&self, idx: u32) -> Option<u32> {
+        for pos in &self.0 {
+            if *pos > idx {
+                return Some(*pos);
+            }
+        }
+
+        None
+    }
+
+    fn prev(&self, idx: u32) -> Option<u32> {
+        let mut res = None;
+        for pos in &self.0 {
+            if *pos > idx {
+                return res;
+            }
+
+            if *pos < idx {
+                res = Some(*pos);
+            }
+        }
 
         res
     }

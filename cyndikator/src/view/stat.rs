@@ -1,21 +1,25 @@
-use super::{Action, Inducable, Position, ScrollUnit};
+use super::{Action, Indexes, Inducable, Position, ScrollUnit};
 use crossterm::event::Event;
 
 pub struct State {
     height: u16,
     offset: u16,
     base: u32,
+
+    search: Option<String>,
 }
 
 impl State {
     pub fn new(height: u16) -> State {
         let offset = 0;
         let base = 0;
+        let search = None;
 
         State {
             height,
             offset,
             base,
+            search,
         }
     }
 
@@ -27,8 +31,16 @@ impl State {
         self.base
     }
 
+    pub fn height(&self) -> u16 {
+        self.height
+    }
+
     pub fn abs(&self) -> u32 {
         self.base + self.offset as u32
+    }
+
+    pub fn search(&self) -> Option<&str> {
+        self.search.as_deref()
     }
 
     pub fn recalc(&mut self, total: u32) {
@@ -41,7 +53,25 @@ impl State {
                 .checked_sub(1)
                 .unwrap_or(0) as u16;
         }
+
+        if self.offset >= self.height {
+            let diff = self.offset - self.height + 1;
+            self.offset = self.offset.checked_sub(diff).unwrap_or(0);
+            self.base += diff as u32;
+        }
         self.offset = self.offset.min(total as u16 - 1);
+    }
+
+    pub fn goto_next(&mut self, idx: &Indexes) {
+        if let Some(next) = idx.next(self.abs() + 1) {
+            self.goto(next);
+        }
+    }
+
+    pub fn goto_prev(&mut self, idx: &Indexes) {
+        if let Some(next) = idx.prev(self.abs() + 1) {
+            self.goto(next);
+        }
     }
 
     fn move_down(&mut self, amount: u16) {
@@ -87,6 +117,9 @@ impl Inducable<Action> for State {
             Action::RelDown(amount, ScrollUnit::Page) => self.move_down(*amount * self.height),
             Action::Goto(Position::Abs(line)) => self.goto(*line),
             Action::Goto(Position::Last) => self.goto(u16::MAX.into()),
+
+            Action::SetSearch(s) => self.search = Some(s.clone()),
+
             _ => (),
         }
     }

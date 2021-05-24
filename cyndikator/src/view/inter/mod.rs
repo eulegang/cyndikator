@@ -1,77 +1,56 @@
-use crossterm::{
-    event::{Event, KeyCode, KeyEvent},
-    Result,
-};
+use super::{Action, Inducable, Position, ScrollUnit};
+use crossterm::{event::KeyEvent, Result};
 
-use super::{Action, Position, ScrollUnit};
+mod norm;
+mod search;
 
-pub struct Inter {
-    pub mag: String,
+pub use norm::Norm;
+pub use search::Search;
+
+pub enum Inter {
+    Norm(Norm),
+    Search(Search),
 }
 
-impl Inter {
-    pub fn new() -> Inter {
-        let mag = String::new();
+pub trait Mode {
+    fn handle(&mut self, event: &KeyEvent) -> Result<Action>;
+    fn status(&self) -> Option<String>;
+}
 
-        Inter { mag }
+impl Default for Inter {
+    fn default() -> Inter {
+        Inter::Norm(Norm::default())
     }
+}
 
-    pub fn interact(&mut self, event: &Event) -> Result<Action> {
-        match event {
-            Event::Key(ke) => return self.inter_key(ke),
+impl Inducable<Action> for Inter {
+    fn induce(&mut self, action: &Action) {
+        match action {
+            Action::StartSearch => {
+                *self = Inter::Search(Search::default());
+            }
+
+            Action::SetSearch(_) => {
+                *self = Inter::Norm(Norm::default());
+            }
 
             _ => (),
-        };
-
-        Ok(Action::Noop)
-    }
-
-    fn inter_key(&mut self, event: &KeyEvent) -> Result<Action> {
-        let mag = self.mag.parse::<u16>().ok();
-        let def_mag = mag.unwrap_or(1);
-
-        if clearable(&event.code) {
-            self.mag.clear();
         }
-
-        let action = match event.code {
-            KeyCode::Char('q') => Action::Quit,
-            KeyCode::Char('j') | KeyCode::Down => Action::RelDown(def_mag, ScrollUnit::Line),
-            KeyCode::Char('k') | KeyCode::Up => Action::RelUp(def_mag, ScrollUnit::Line),
-            KeyCode::Char('g') => Action::Goto(Position::Abs(def_mag.into())),
-
-            KeyCode::Char('d') => Action::RelDown(def_mag, ScrollUnit::Half),
-            KeyCode::Char('u') => Action::RelUp(def_mag, ScrollUnit::Half),
-            KeyCode::Char('f') => Action::RelDown(def_mag, ScrollUnit::Page),
-            KeyCode::Char('b') => Action::RelUp(def_mag, ScrollUnit::Page),
-
-            KeyCode::Char('D') => Action::Delete,
-            KeyCode::Char('U') => Action::Undo,
-            KeyCode::Char('G') => {
-                let pos = mag
-                    .map(|i| Position::Abs(i.checked_sub(1).unwrap_or(1).into()))
-                    .unwrap_or(Position::Last);
-
-                Action::Goto(pos)
-            }
-            KeyCode::Enter => Action::Open,
-
-            KeyCode::Char(ch) if ('0'..='9').contains(&ch) => {
-                self.mag.push(ch);
-                Action::Noop
-            }
-
-            _ => Action::Noop,
-        };
-
-        Ok(action)
     }
 }
 
-fn clearable(code: &KeyCode) -> bool {
-    if let KeyCode::Char(ch) = code {
-        ('0'..='9').contains(ch)
-    } else {
-        false
+impl Mode for Inter {
+    fn handle(&mut self, event: &KeyEvent) -> Result<Action> {
+        match self {
+            Inter::Norm(norm) => norm.handle(event),
+            Inter::Search(search) => search.handle(event),
+        }
+    }
+
+    fn status(&self) -> Option<String> {
+        match self {
+            Inter::Norm(norm) => norm.status(),
+            Inter::Search(search) => search.status(),
+        }
     }
 }

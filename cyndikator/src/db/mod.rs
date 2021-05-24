@@ -250,4 +250,25 @@ impl Database {
 
         Ok(affected > 0)
     }
+
+    pub fn search_offsets(&self, term: &str) -> Result<Vec<u32>, Error> {
+        let mut stmt = self.conn.prepare(
+            "
+            select ord 
+            from items inner join 
+            (select row_number() over (order by id desc) as ord, id from items)
+            as ord on items.id = ord.id 
+            where title like ?1
+            ",
+        )?;
+
+        let iter = stmt.query_map(params![format!("%{}%", term)], |row| {
+            let offset: u32 = row.get(0)?;
+            Ok(offset)
+        })?;
+
+        let x = iter.collect::<Result<Vec<u32>, rusqlite::Error>>()?;
+
+        Ok(x)
+    }
 }

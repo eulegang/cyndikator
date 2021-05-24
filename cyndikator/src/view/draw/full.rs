@@ -7,6 +7,7 @@ use std::borrow::Cow;
 pub struct Full<'a> {
     pub selected: u16,
     pub entries: &'a [Entry],
+    pub status: Option<String>,
 }
 
 impl<'a> Draw for Full<'a> {
@@ -17,6 +18,12 @@ impl<'a> Draw for Full<'a> {
         let rem = (height as usize)
             .checked_sub(self.entries.len())
             .unwrap_or(0);
+
+        let (end, rem) = match self.status {
+            Some(_) if rem > 0 => (end, rem - 1),
+            Some(_) => (end - 1, rem),
+            None => (end, rem),
+        };
 
         let ents = &self.entries[..end];
 
@@ -41,6 +48,10 @@ impl<'a> Draw for Full<'a> {
             out.queue(cursor::MoveToNextLine(1))?;
         }
         out.queue(SetForegroundColor(Color::Reset))?;
+
+        if let Some(status) = &self.status {
+            out.queue(Print(status))?;
+        }
 
         Ok(())
     }

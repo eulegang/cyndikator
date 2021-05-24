@@ -1,3 +1,4 @@
+use super::Indexes;
 use crate::db::{Database, Entry, Error};
 use std::collections::VecDeque;
 
@@ -106,6 +107,11 @@ impl Cache {
         }
 
         self.total
+    }
+
+    pub fn search_indexes(&self, search: &str) -> Result<Indexes, Error> {
+        let idx = self.db.search_offsets(search)?;
+        Ok(Indexes(idx))
     }
 
     fn mk_dirty(&mut self) {
