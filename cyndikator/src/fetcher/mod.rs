@@ -59,18 +59,18 @@ impl Fetcher {
                 title,
                 categories,
                 description,
-                date,
 
                 feed_url,
                 feed_title,
                 feed_categories,
+                date,
             })
         }
 
         Ok(events)
     }
 
-    async fn fill_cache<'a>(&'a mut self) -> eyre::Result<()> {
+    async fn fill_cache(&mut self) -> eyre::Result<()> {
         if self.feed.is_none() {
             let url = self.url.clone();
             let text = match url.scheme() {

@@ -20,7 +20,7 @@ impl Init {
     pub async fn run(self) -> eyre::Result<()> {
         let path = self
             .database
-            .map_or_else(|| Database::default_path(), |s| PathBuf::from(s));
+            .map_or_else(Database::default_path, PathBuf::from);
         let mut db = Database::create(path)?;
 
         if self.update {

@@ -22,8 +22,8 @@ impl Cache {
         Cache {
             db,
             loc,
-            cache,
             total,
+            cache,
             undo_queue,
         }
     }

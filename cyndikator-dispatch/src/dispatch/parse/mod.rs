@@ -186,7 +186,7 @@ impl Parsable for Op {
             Token::Ident { content: "matches" } => {
                 let (tokens, rh) = Regex::parse(tokens)?;
 
-                Ok((tokens, Op::Matches(lh, rh.into())))
+                Ok((tokens, Op::Matches(lh, Box::new(rh.into()))))
             }
 
             _ => {
@@ -228,10 +228,12 @@ impl Parsable for Regex {
                     builder.ignore_whitespace(true);
                 }
 
-                let regex = builder.build().or(Err(ParseError::InvalidExpectation {
-                    expect: "valid regex".to_string(),
-                    reality: format!("{}", content),
-                }))?;
+                let regex = builder
+                    .build()
+                    .map_err(|_| ParseError::InvalidExpectation {
+                        expect: "valid regex".to_string(),
+                        reality: content.to_string(),
+                    })?;
 
                 Ok((tokens, regex))
             }
@@ -274,7 +276,7 @@ impl Parsable for Var {
 
         let var = match t {
             Token::Ident { content } => match *content {
-                "url" => Var::URL,
+                "url" => Var::Url,
                 "title" => Var::Title,
                 "categories" => Var::Categories,
                 "description" => Var::Description,
@@ -320,10 +322,10 @@ impl Parsable for StringInterpol {
                 interpolated: true,
             } => {
                 parse_interpol_str(&content)
-                    .or(Err(ParseError::InvalidExpectation {
+                    .map_err(|_| ParseError::InvalidExpectation {
                         reality: format!("{:?}", content),
                         expect: "a valid string".to_string(),
-                    }))?
+                    })?
                     .1
             }
 
@@ -342,7 +344,7 @@ impl Parsable for StringInterpol {
 fn next<'input, 'tokens>(
     tokens: &'tokens [Token<'input>],
 ) -> Result<(&'tokens [Token<'input>], &'tokens Token<'input>), ParseError> {
-    if tokens.len() > 0 {
+    if !tokens.is_empty() {
         Ok((&tokens[1..], &tokens[0]))
     } else {
         Err(ParseError::EndOfTokens)
@@ -400,7 +402,7 @@ fn parse_inter_var(input: &str) -> IResult<&str, Var> {
     };
 
     let var = match content {
-        "url" => Var::URL,
+        "url" => Var::Url,
         "title" => Var::Title,
         "categories" => Var::Categories,
         "description" => Var::Description,

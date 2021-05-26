@@ -18,7 +18,7 @@ impl Ticker {
     pub fn new(dur: Duration) -> Ticker {
         let expire = None;
 
-        Ticker { dur, expire }
+        Ticker { expire, dur }
     }
 }
 

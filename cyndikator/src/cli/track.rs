@@ -26,7 +26,7 @@ impl Track {
     pub async fn run(self) -> eyre::Result<()> {
         let path = self
             .database
-            .map_or_else(|| Database::default_path(), |s| PathBuf::from(s));
+            .map_or_else(Database::default_path, PathBuf::from);
         let mut db = Database::open(path)?;
 
         let url = Url::parse(&self.feed).wrap_err("invalid url")?;
@@ -53,7 +53,7 @@ impl Tracking {
     pub async fn run(self) -> eyre::Result<()> {
         let path = self
             .database
-            .map_or_else(|| Database::default_path(), |s| PathBuf::from(s));
+            .map_or_else(Database::default_path, PathBuf::from);
         let mut db = Database::open(path)?;
 
         let feeds = db.tracking()?;
@@ -102,7 +102,7 @@ impl Untrack {
     pub async fn run(self) -> eyre::Result<()> {
         let path = self
             .database
-            .map_or_else(|| Database::default_path(), |s| PathBuf::from(s));
+            .map_or_else(Database::default_path, PathBuf::from);
         let mut db = Database::open(path)?;
 
         let existed = db.untrack(&self.feed)?;

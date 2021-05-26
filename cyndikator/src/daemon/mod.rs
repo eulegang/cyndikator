@@ -45,8 +45,8 @@ impl Daemon {
             info!("tracking {}", &feed.title);
 
             tracker.track(Trackee {
-                url: url,
-                last: feed.last_fetch.unwrap_or_else(|| Local::now()),
+                url,
+                last: feed.last_fetch.unwrap_or_else(Local::now),
                 ttl: feed.ttl.unwrap_or(60),
             })
         }
@@ -137,7 +137,8 @@ impl Daemon {
     }
 }
 
-fn sep<S, T, E>(v: Vec<(S, Result<T, E>)>) -> (Vec<(S, T)>, Vec<(S, E)>) {
+type ResSplit<S, T, E> = (Vec<(S, T)>, Vec<(S, E)>);
+fn sep<S, T, E>(v: Vec<(S, Result<T, E>)>) -> ResSplit<S, T, E> {
     let mut ts = Vec::new();
     let mut es = Vec::new();
 

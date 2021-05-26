@@ -15,9 +15,7 @@ impl<'a> Draw for Full<'a> {
         let (width, height) = terminal::size()?;
 
         let end = (height as usize).min(self.entries.len());
-        let rem = (height as usize)
-            .checked_sub(self.entries.len())
-            .unwrap_or(0);
+        let rem = (height as usize).saturating_sub(self.entries.len());
 
         let (end, rem) = match self.status {
             Some(_) if rem > 0 => (end, rem - 1),
@@ -30,16 +28,14 @@ impl<'a> Draw for Full<'a> {
         out.queue(cursor::MoveTo(0, 0))?;
         out.queue(terminal::Clear(terminal::ClearType::All))?;
 
-        let mut i = 0;
-        for entry in ents {
+        for (i, entry) in ents.iter().enumerate() {
             Line {
                 width,
-                selected: i == self.selected,
+                selected: i == self.selected as usize,
                 entry,
             }
             .draw(out)?;
             out.queue(cursor::MoveToNextLine(1))?;
-            i += 1;
         }
 
         out.queue(SetForegroundColor(Color::Blue))?;
@@ -103,7 +99,7 @@ impl<'a> Draw for Line<'a> {
 
 /// Simple and wrong but want to move one TODO: fixup
 /// Assumes ascii not utf8
-fn trunc<'a>(input: &'a str, width: u16) -> Cow<'a, str> {
+fn trunc(input: &str, width: u16) -> Cow<str> {
     if input.len() <= width as usize {
         input.into()
     } else {

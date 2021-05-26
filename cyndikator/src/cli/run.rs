@@ -25,19 +25,16 @@ impl Run {
         let path = self
             .database
             .as_ref()
-            .map_or_else(|| Database::default_path(), |s| PathBuf::from(s));
+            .map_or_else(Database::default_path, PathBuf::from);
         let db = Database::open(path)?;
 
-        let dispatch_filepath = self
-            .file
-            .map(|file| PathBuf::from(file))
-            .unwrap_or_else(|| {
-                let mut p = Database::default_path();
-                p.pop();
-                p.push("cyndikator.dispatch");
+        let dispatch_filepath = self.file.map(PathBuf::from).unwrap_or_else(|| {
+            let mut p = Database::default_path();
+            p.pop();
+            p.push("cyndikator.dispatch");
 
-                p
-            });
+            p
+        });
 
         let content = fs::read_to_string(dispatch_filepath)?;
 

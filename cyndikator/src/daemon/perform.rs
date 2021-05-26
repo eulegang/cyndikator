@@ -29,8 +29,8 @@ impl<'a> Invoker<'a> {
                 );
 
                 let res = Notification::new()
-                    .summary(event.title.as_deref().unwrap_or_else(|| "(untitled event)"))
-                    .body(event.url.as_deref().unwrap_or_else(|| ""))
+                    .summary(event.title.as_deref().unwrap_or("(untitled event)"))
+                    .body(event.url.as_deref().unwrap_or(""))
                     .show();
 
                 if let Err(err) = res {

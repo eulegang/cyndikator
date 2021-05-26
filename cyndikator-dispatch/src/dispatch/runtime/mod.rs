@@ -28,7 +28,7 @@ pub enum ActionGen {
 pub enum Op {
     Is(Expr, Expr),
     In(Expr, Expr),
-    Matches(Expr, Re),
+    Matches(Expr, Box<Re>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -47,7 +47,7 @@ pub enum Value {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Var {
-    URL,
+    Url,
     Title,
     Categories,
     Description,
@@ -89,7 +89,7 @@ impl std::ops::Deref for Re {
 impl Var {
     pub fn realize(&self, event: &Event) -> Value {
         match self {
-            Var::URL => event.url.clone().into(),
+            Var::Url => event.url.clone().into(),
             Var::Title => event.title.clone().into(),
             Var::Categories => event.categories.clone().into(),
             Var::Description => event.description.clone().into(),
@@ -114,7 +114,7 @@ impl Expr {
 impl From<Option<String>> for Value {
     fn from(os: Option<String>) -> Value {
         match os {
-            Some(s) => Value::Str(s.clone()),
+            Some(s) => Value::Str(s),
             None => Value::Nil,
         }
     }
@@ -190,7 +190,7 @@ impl Op {
                 (_, Value::Nil) => false,
 
                 (Value::Str(s), Value::Strs(ss)) => ss.iter().any(|sub| &s == sub),
-                (Value::Str(l), Value::Str(r)) => r.find(&l).is_some(),
+                (Value::Str(l), Value::Str(r)) => r.contains(&l),
 
                 (Value::Strs(l), Value::Str(r)) => l.iter().any(|ls| ls == &r),
                 (Value::Strs(l), Value::Strs(r)) => l.iter().all(|ls| r.iter().any(|lr| ls == lr)),

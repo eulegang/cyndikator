@@ -45,18 +45,14 @@ impl State {
 
     pub fn recalc(&mut self, total: u32) {
         if self.offset as u32 + self.base >= total {
-            self.base = total.checked_sub(self.height as u32).unwrap_or(0);
+            self.base = total.saturating_sub(self.height as u32);
 
-            self.offset = total
-                .checked_sub(self.base)
-                .unwrap_or(0)
-                .checked_sub(1)
-                .unwrap_or(0) as u16;
+            self.offset = total.saturating_sub(self.base).saturating_sub(1) as u16;
         }
 
         if self.offset >= self.height {
             let diff = self.offset - self.height + 1;
-            self.offset = self.offset.checked_sub(diff).unwrap_or(0);
+            self.offset = self.offset.saturating_sub(diff);
             self.base += diff as u32;
         }
         self.offset = self.offset.min(total as u16 - 1);
@@ -90,12 +86,12 @@ impl State {
             0
         };
 
-        self.offset = self.offset.checked_sub(amount).unwrap_or(0);
-        self.base = self.base.checked_sub(diff as u32).unwrap_or(0);
+        self.offset = self.offset.saturating_sub(amount);
+        self.base = self.base.saturating_sub(diff as u32);
     }
 
     fn goto(&mut self, line: u32) {
-        let adjusted = line.checked_sub(1).unwrap_or(0);
+        let adjusted = line.saturating_sub(1);
 
         if adjusted < self.base {
             self.base = adjusted;
@@ -108,11 +104,12 @@ impl State {
 
 impl Inducable<Action> for State {
     fn induce(&mut self, elem: &Action) {
+        let half = self.height >> 1;
         match elem {
             Action::RelUp(amount, ScrollUnit::Line) => self.move_up(*amount),
             Action::RelDown(amount, ScrollUnit::Line) => self.move_down(*amount),
-            Action::RelUp(amount, ScrollUnit::Half) => self.move_up(*amount * self.height >> 1),
-            Action::RelDown(amount, ScrollUnit::Half) => self.move_down(*amount * self.height >> 1),
+            Action::RelUp(amount, ScrollUnit::Half) => self.move_up(*amount * half),
+            Action::RelDown(amount, ScrollUnit::Half) => self.move_down(*amount * half),
             Action::RelUp(amount, ScrollUnit::Page) => self.move_up(*amount * self.height),
             Action::RelDown(amount, ScrollUnit::Page) => self.move_down(*amount * self.height),
             Action::Goto(Position::Abs(line)) => self.goto(*line),
@@ -127,9 +124,8 @@ impl Inducable<Action> for State {
 
 impl Inducable<Event> for State {
     fn induce(&mut self, elem: &Event) {
-        match elem {
-            Event::Resize(_, height) => self.height = *height,
-            _ => (),
+        if let Event::Resize(_, height) = elem {
+            self.height = *height;
         }
     }
 }

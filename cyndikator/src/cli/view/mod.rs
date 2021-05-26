@@ -14,7 +14,7 @@ impl View {
         let path = self
             .database
             .as_ref()
-            .map_or_else(|| Database::default_path(), |s| PathBuf::from(s));
+            .map_or_else(Database::default_path, PathBuf::from);
         let db = Database::open(path)?;
 
         let view = crate::view::View::new(db);
