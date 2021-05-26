@@ -270,7 +270,7 @@ dependencies = [
 
 [[package]]
 name = "cyndikator"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "crossterm",
@@ -297,7 +297,7 @@ dependencies = [
 
 [[package]]
 name = "cyndikator-dispatch"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "nom",
