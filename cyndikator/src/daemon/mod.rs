@@ -1,7 +1,7 @@
 use crate::db::Database;
 use crate::fetcher::Fetcher;
-use crate::ticker::Ticker;
 use crate::tracker::{Trackee, Tracker};
+use ticker::Ticker;
 
 use chrono::Local;
 use futures::{future::join_all, select, StreamExt};
@@ -13,6 +13,7 @@ use cyndikator_dispatch::{Dispatch, Event};
 use perform::Invoker;
 
 mod perform;
+mod ticker;
 
 pub struct Daemon {
     db: Database,
