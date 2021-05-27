@@ -287,10 +287,12 @@ dependencies = [
  "refinery",
  "reqwest",
  "rusqlite",
+ "serde",
  "structopt",
  "tabular",
  "thiserror",
  "tokio",
+ "toml",
  "url",
  "wait-timeout",
 ]

@@ -1,22 +1,19 @@
-use crate::db::Database;
+use crate::{config::Config, db::Database};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
 /// View recorded events
 #[derive(StructOpt)]
 pub struct View {
-    #[structopt(short, long, env = "CYNDIKATOR_DATABASE")]
-    database: Option<String>,
+    /// Config to load
+    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    config: Option<PathBuf>,
 }
 
 impl View {
     pub async fn run(self) -> eyre::Result<()> {
-        let path = self
-            .database
-            .as_ref()
-            .map_or_else(Database::default_path, PathBuf::from);
-        let db = Database::open(path)?;
-
+        let config = Config::load(self.config.as_deref())?;
+        let db = Database::open(config.database_path()?)?;
         let view = crate::view::View::new(db);
 
         view.interact()

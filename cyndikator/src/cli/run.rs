@@ -1,5 +1,5 @@
 use crate::daemon::Daemon;
-use crate::db::Database;
+use crate::{config::Config, db::Database};
 use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -11,32 +11,19 @@ use cyndikator_dispatch::Dispatch;
 /// Start tracking feeds
 #[derive(StructOpt)]
 pub struct Run {
-    /// where the database is located
-    #[structopt(short, long, env = "CYNDIKATOR_DATABASE")]
-    database: Option<String>,
-
-    /// File to interpret events with
-    #[structopt(short, long)]
-    file: Option<String>,
+    /// Config to load
+    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    config: Option<PathBuf>,
 }
 
 impl Run {
     pub async fn run(self) -> eyre::Result<()> {
-        let path = self
-            .database
-            .as_ref()
-            .map_or_else(Database::default_path, PathBuf::from);
-        let db = Database::open(path)?;
+        let config = Config::load(self.config.as_deref())?;
+        let db_path = config.database_path()?;
+        let db = Database::open(db_path)?;
+        let dispatch_path = config.dispatch_path()?;
 
-        let dispatch_filepath = self.file.map(PathBuf::from).unwrap_or_else(|| {
-            let mut p = Database::default_path();
-            p.pop();
-            p.push("cyndikator.dispatch");
-
-            p
-        });
-
-        let content = fs::read_to_string(dispatch_filepath)?;
+        let content = fs::read_to_string(dispatch_path)?;
 
         let dispatch = Dispatch::parse(&content).wrap_err("failed to parse dispatch file")?;
 

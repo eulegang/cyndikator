@@ -2,10 +2,10 @@ use std::env;
 use structopt::StructOpt;
 
 mod cli;
+mod config;
 mod daemon;
 mod db;
 mod fetcher;
-mod tracker;
 mod view;
 
 #[tokio::main]

@@ -3,7 +3,7 @@ use rusqlite::{config::DbConfig, params, Connection, OpenFlags};
 use url::Url;
 
 use std::fs::create_dir_all;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 mod migrate {
     use refinery::embed_migrations;
@@ -40,6 +40,9 @@ pub enum Error {
 
     #[error("failure migrating {0}")]
     Migration(#[from] refinery::Error),
+
+    #[error("io: {0}")]
+    Io(#[from] std::io::Error),
 }
 
 impl Database {
@@ -53,6 +56,9 @@ impl Database {
 
     pub fn create(path: impl AsRef<Path>) -> Result<Database, Error> {
         let path = path.as_ref();
+        if let Some(basename) = path.parent() {
+            create_dir_all(basename)?;
+        }
 
         let conn = Connection::open(path)?;
 
@@ -63,20 +69,6 @@ impl Database {
         migrate::migrations::runner().run(&mut self.conn)?;
 
         Ok(())
-    }
-
-    pub fn default_path() -> PathBuf {
-        let mut dir = dirs::home_dir().expect("can not find home dir");
-
-        dir.push(".cyndikator");
-
-        if !dir.exists() {
-            create_dir_all(&dir).expect("creating cyndikator directory");
-        }
-
-        dir.push("cynd.db3");
-
-        dir
     }
 
     pub fn track(&mut self, url: &Url, title: &str, ttl: Option<u32>) -> Result<(), Error> {

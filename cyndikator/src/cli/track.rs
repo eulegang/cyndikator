@@ -4,15 +4,15 @@ use structopt::StructOpt;
 use tabular::{Row, Table};
 use url::Url;
 
-use crate::db::Database;
+use crate::{config::Config, db::Database};
 use std::path::PathBuf;
 
 /// Start tracking a feed
 #[derive(StructOpt)]
 pub struct Track {
-    /// where the database is located
-    #[structopt(short, long, env = "CYNDIKATOR_DATABASE")]
-    database: Option<String>,
+    /// Config to load
+    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    config: Option<PathBuf>,
 
     /// A rss feed to start  tracking
     feed: String,
@@ -24,10 +24,8 @@ pub struct Track {
 
 impl Track {
     pub async fn run(self) -> eyre::Result<()> {
-        let path = self
-            .database
-            .map_or_else(Database::default_path, PathBuf::from);
-        let mut db = Database::open(path)?;
+        let config = Config::load(self.config.as_deref())?;
+        let mut db = Database::open(config.database_path()?)?;
 
         let url = Url::parse(&self.feed).wrap_err("invalid url")?;
 
@@ -44,17 +42,15 @@ impl Track {
 /// List feeds in the cydikator database
 #[derive(StructOpt)]
 pub struct Tracking {
-    /// where the database is located
-    #[structopt(short, long, env = "CYNDIKATOR_DATABASE")]
-    database: Option<String>,
+    /// Config to load
+    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    config: Option<PathBuf>,
 }
 
 impl Tracking {
     pub async fn run(self) -> eyre::Result<()> {
-        let path = self
-            .database
-            .map_or_else(Database::default_path, PathBuf::from);
-        let mut db = Database::open(path)?;
+        let config = Config::load(self.config.as_deref())?;
+        let mut db = Database::open(config.database_path()?)?;
 
         let feeds = db.tracking()?;
 
@@ -90,9 +86,9 @@ impl Tracking {
 /// Remove feed from being tracked
 #[derive(StructOpt)]
 pub struct Untrack {
-    /// where the database is located
-    #[structopt(short, long, env = "CYNDIKATOR_DATABASE")]
-    database: Option<String>,
+    /// Config to load
+    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    config: Option<PathBuf>,
 
     /// url to untrack
     feed: String,
@@ -100,10 +96,8 @@ pub struct Untrack {
 
 impl Untrack {
     pub async fn run(self) -> eyre::Result<()> {
-        let path = self
-            .database
-            .map_or_else(Database::default_path, PathBuf::from);
-        let mut db = Database::open(path)?;
+        let config = Config::load(self.config.as_deref())?;
+        let mut db = Database::open(config.database_path()?)?;
 
         let existed = db.untrack(&self.feed)?;
 

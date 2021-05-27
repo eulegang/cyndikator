@@ -1,7 +1,7 @@
 use crate::db::Database;
 use crate::fetcher::Fetcher;
-use crate::tracker::{Trackee, Tracker};
 use ticker::Ticker;
+use tracker::{Trackee, Tracker};
 
 use chrono::Local;
 use futures::{future::join_all, select, StreamExt};
@@ -14,6 +14,7 @@ use perform::Invoker;
 
 mod perform;
 mod ticker;
+mod tracker;
 
 pub struct Daemon {
     db: Database,
