@@ -97,18 +97,23 @@ impl<'a> Draw for Line<'a> {
     }
 }
 
-/// Simple and wrong but want to move one TODO: fixup
-/// Assumes ascii not utf8
 fn trunc(input: &str, width: u16) -> Cow<str> {
     if input.len() <= width as usize {
         input.into()
     } else {
-        let mut buf = input[0..width as usize].to_string();
+        let mut buf = String::with_capacity(input.len());
+
+        for (i, ch) in input.chars().enumerate() {
+            if i < width as usize {
+                buf.push(ch);
+            }
+        }
+
         buf.pop();
         buf.pop();
         buf.pop();
 
-        for _ in 0..width - buf.len() as u16 {
+        for _ in 0..width.min(3) {
             buf.push('.');
         }
 
@@ -120,5 +125,15 @@ fn trunc(input: &str, width: u16) -> Cow<str> {
 fn trunc_test() {
     assert_eq!(trunc("hello", 5), "hello");
     assert_eq!(trunc("hello", 4), "h...");
+}
+
+#[test]
+fn trunc_test_heart() {
+    // bad name but <3 dots
     assert_eq!(trunc("hello", 2), "..");
+}
+
+#[test]
+fn trunc_panic_test() {
+    assert_eq!(trunc("объект", 5), "об...");
 }
