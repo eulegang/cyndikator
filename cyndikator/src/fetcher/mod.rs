@@ -46,7 +46,7 @@ impl Fetcher {
             let title = entry.title.as_ref().map(|t| t.content.clone());
             let url = entry.links.first().map(|l| l.href.clone());
             let categories = entry.categories.iter().map(|c| c.term.clone()).collect();
-            let date = entry.published.map(|d| d.into());
+            let date = entry.published.or(entry.updated).map(|d| d.into());
 
             let description = entry
                 .content
@@ -96,6 +96,21 @@ impl Fetcher {
 #[ignore]
 fn show_lobster_feed() {
     let url = Url::parse("https://lobste.rs/rss").unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let mut fetcher = Fetcher::new(&url);
+
+    rt.block_on(async {
+        dbg!(fetcher.events().await.unwrap());
+    });
+
+    panic!("just showing events");
+}
+
+#[cfg(test)]
+#[test]
+#[ignore]
+fn show_lime_feed() {
+    let url = Url::parse("https://fasterthanli.me/index.xml").unwrap();
     let rt = tokio::runtime::Runtime::new().unwrap();
     let mut fetcher = Fetcher::new(&url);
 
