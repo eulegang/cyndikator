@@ -3,7 +3,7 @@ use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Config {
     database: Option<PathBuf>,
     dispatch: Option<PathBuf>,
@@ -31,18 +31,17 @@ impl Config {
     pub fn load(path: Option<&Path>) -> eyre::Result<Config> {
         let default = Config::default();
 
-        let mut config = if let Some(path) = path {
-            Config::load_from_path(path)?
-        } else {
-            let default_path =
-                default_conf().wrap_err("unable to find default cyndikator config path")?;
+        let path = path.map(Path::to_path_buf).or_else(|| default_conf()).wrap_err("unable to find default cyndikator config path")?;
 
-            Config::load_from_path(default_path.as_path())?
-        };
 
-        config.fold(default);
+        match Config::load_from_path(&path) {
+            Ok(mut config) => {
+                config.fold(default);
+                Ok(config)
+            }
 
-        Ok(config)
+            Err(_) => Ok(default),
+        }
     }
 
     pub fn database_path(&self) -> eyre::Result<&Path> {
