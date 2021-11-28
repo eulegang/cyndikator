@@ -31,8 +31,10 @@ impl Config {
     pub fn load(path: Option<&Path>) -> eyre::Result<Config> {
         let default = Config::default();
 
-        let path = path.map(Path::to_path_buf).or_else(|| default_conf()).wrap_err("unable to find default cyndikator config path")?;
-
+        let path = path
+            .map(Path::to_path_buf)
+            .or_else(|| default_conf())
+            .wrap_err("unable to find default cyndikator config path")?;
 
         match Config::load_from_path(&path) {
             Ok(mut config) => {
