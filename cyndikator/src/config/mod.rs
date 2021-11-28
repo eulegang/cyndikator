@@ -59,7 +59,7 @@ impl Config {
         let path = self
             .dispatch
             .as_ref()
-            .wrap_err("database has never been specified")?;
+            .wrap_err("dispatch file has never been specified")?;
 
         Ok(path.as_path())
     }
