@@ -1,0 +1,8 @@
+[Unit]
+Description=Cyndikator daemon
+[Service]
+Type=simple
+ExecStart=${HOME}/.cargo/bin/cynd run
+[Install]
+WantedBy=default.target
+
