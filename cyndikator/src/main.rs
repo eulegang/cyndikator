@@ -1,5 +1,5 @@
+use clap::Parser;
 use std::env;
-use structopt::StructOpt;
 
 mod cli;
 mod config;
@@ -16,7 +16,7 @@ async fn main() -> eyre::Result<()> {
 
     pretty_env_logger::init_custom_env("CYND_LOG");
 
-    let cli = cli::Cli::from_args();
+    let cli = cli::Cli::parse();
 
     cli.run().await?;
 

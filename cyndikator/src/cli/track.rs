@@ -1,6 +1,6 @@
 use crate::fetcher::Fetcher;
+use clap::Parser;
 use eyre::WrapErr;
-use structopt::StructOpt;
 use tabular::{Row, Table};
 use url::Url;
 
@@ -8,17 +8,17 @@ use crate::{config::Config, db::Database};
 use std::path::PathBuf;
 
 /// Start tracking a feed
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub struct Track {
     /// Config to load
-    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    #[clap(short, long, env = "CYNDIKATOR_CONFIG")]
     config: Option<PathBuf>,
 
     /// A rss feed to start  tracking
     feed: String,
 
     /// Override the ttl to fetch
-    #[structopt(long)]
+    #[clap(long)]
     ttl: Option<u32>,
 }
 
@@ -40,10 +40,10 @@ impl Track {
 }
 
 /// List feeds in the cydikator database
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub struct Tracking {
     /// Config to load
-    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    #[clap(short, long, env = "CYNDIKATOR_CONFIG")]
     config: Option<PathBuf>,
 }
 
@@ -84,10 +84,10 @@ impl Tracking {
 }
 
 /// Remove feed from being tracked
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub struct Untrack {
     /// Config to load
-    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    #[clap(short, long, env = "CYNDIKATOR_CONFIG")]
     config: Option<PathBuf>,
 
     /// url to untrack

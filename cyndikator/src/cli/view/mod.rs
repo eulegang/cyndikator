@@ -1,12 +1,12 @@
 use crate::{config::Config, db::Database};
+use clap::Parser;
 use std::path::PathBuf;
-use structopt::StructOpt;
 
 /// View recorded events
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub struct View {
     /// Config to load
-    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    #[clap(short, long, env = "CYNDIKATOR_CONFIG")]
     config: Option<PathBuf>,
 }
 

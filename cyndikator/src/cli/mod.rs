@@ -1,11 +1,11 @@
-use structopt::StructOpt;
+use clap::Parser;
 
 mod init;
 mod run;
 mod track;
 mod view;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub enum Cli {
     Run(run::Run),
     Track(track::Track),

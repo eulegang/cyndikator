@@ -1,18 +1,18 @@
 use crate::{config::Config, db::Database};
+use clap::Parser;
 use eyre::WrapErr;
-use structopt::StructOpt;
 
 use std::path::PathBuf;
 
 /// Init and/or update the cyndikator database
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub struct Init {
     /// Config to load
-    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    #[clap(short, long, env = "CYNDIKATOR_CONFIG")]
     config: Option<PathBuf>,
 
     /// Update the database schema
-    #[structopt(short, long)]
+    #[clap(short, long)]
     update: bool,
 }
 

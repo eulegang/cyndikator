@@ -1,18 +1,17 @@
 use crate::daemon::Daemon;
 use crate::{config::Config, db::Database};
+use clap::Parser;
+use eyre::WrapErr;
 use std::fs;
 use std::path::PathBuf;
-use structopt::StructOpt;
-
-use eyre::WrapErr;
 
 use cyndikator_dispatch::Dispatch;
 
 /// Start tracking feeds
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub struct Run {
     /// Config to load
-    #[structopt(short, long, env = "CYNDIKATOR_CONFIG")]
+    #[clap(short, long, env = "CYNDIKATOR_CONFIG")]
     config: Option<PathBuf>,
 }
 
