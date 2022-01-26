@@ -12,7 +12,7 @@ use nom::{
 #[derive(Debug)]
 pub(crate) enum Token<'input> {
     Comment {
-        content: &'input str,
+        _content: &'input str,
     },
 
     Str {
@@ -76,9 +76,9 @@ impl<'a> Token<'a> {
 
 fn parse_comment(input: &str) -> IResult<&str, Token> {
     let (input, _) = tag("#")(input)?;
-    let (input, content) = is_not("\r\n")(input)?;
+    let (input, _content) = is_not("\r\n")(input)?;
 
-    Ok((input, Token::Comment { content }))
+    Ok((input, Token::Comment { _content }))
 }
 
 fn parse_str(input: &str) -> IResult<&str, Token> {
