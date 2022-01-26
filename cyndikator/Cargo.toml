@@ -16,7 +16,7 @@ path = "src/main.rs"
 eyre = "0.6"
 thiserror = "1.0"
 clap = { version = "3.0", features = [ "derive", "env" ] }
-dirs = "3.0"
+dirs = "4.0"
 tokio = { version = "1.0", features = [ "full" ] }
 rusqlite = { version = "0.26", features = [ "chrono" ] }
 refinery = { version = "0.8", features = [ "rusqlite" ] }
