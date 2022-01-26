@@ -309,6 +309,7 @@ dependencies = [
  "chrono",
  "nom",
  "regex",
+ "thiserror",
 ]
 
 [[package]]

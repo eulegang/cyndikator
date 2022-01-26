@@ -1,4 +1,4 @@
-use crate::Event;
+use crate::{Action, Event};
 use parse::Parsable;
 use runtime::DispatchCase;
 use std::fmt;
@@ -17,19 +17,6 @@ mod test;
 #[derive(Debug)]
 pub struct Dispatch {
     cases: Vec<runtime::DispatchCase>,
-}
-
-/// An action to take given a specific [Event]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-    /// Record the event for viewing later
-    Record,
-
-    /// Notify via an approprate channel (system notification system)
-    Notify,
-
-    /// Execute a shell line
-    Exec(String),
 }
 
 impl Dispatch {

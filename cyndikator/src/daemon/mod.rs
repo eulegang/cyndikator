@@ -9,7 +9,7 @@ use log::{debug, error, info, trace};
 use std::time::Duration;
 use url::Url;
 
-use cyndikator_dispatch::{Dispatch, Event};
+use cyndikator_dispatch::{Dispatcher, Event};
 use perform::Invoker;
 
 mod perform;
@@ -18,12 +18,12 @@ mod tracker;
 
 pub struct Daemon {
     db: Database,
-    dispatch: Dispatch,
+    dispatch: Dispatcher,
     tick: usize,
 }
 
 impl Daemon {
-    pub fn new(db: Database, dispatch: Dispatch, tick: usize) -> Daemon {
+    pub fn new(db: Database, dispatch: Dispatcher, tick: usize) -> Daemon {
         Daemon { db, dispatch, tick }
     }
 

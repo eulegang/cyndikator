@@ -9,7 +9,7 @@ description = "a mini dispatch language for handling feed events"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
 nom = "6.1"
 regex = "1"
 chrono = "0.4"
+thiserror = "1.0"
