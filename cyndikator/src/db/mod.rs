@@ -10,6 +10,37 @@ mod migrate {
     embed_migrations!();
 }
 
+pub enum DatabaseCoord<'a> {
+    Sqlite(&'a Path),
+}
+
+impl<'a> DatabaseCoord<'a> {
+    pub fn open(self) -> Result<Database, Error> {
+        match self {
+            DatabaseCoord::Sqlite(path) => {
+                let conn = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_WRITE)?;
+                conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?;
+
+                Ok(Database { conn })
+            }
+        }
+    }
+
+    pub fn create(self) -> Result<Database, Error> {
+        match self {
+            DatabaseCoord::Sqlite(path) => {
+                if let Some(basename) = path.parent() {
+                    create_dir_all(basename)?;
+                }
+
+                let conn = Connection::open(path)?;
+
+                Ok(Database { conn })
+            }
+        }
+    }
+}
+
 pub struct Database {
     conn: Connection,
 }
@@ -46,25 +77,6 @@ pub enum Error {
 }
 
 impl Database {
-    pub fn open(path: impl AsRef<Path>) -> Result<Database, Error> {
-        let path = path.as_ref();
-        let conn = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_WRITE)?;
-        conn.set_db_config(DbConfig::SQLITE_DBCONFIG_ENABLE_FKEY, true)?;
-
-        Ok(Database { conn })
-    }
-
-    pub fn create(path: impl AsRef<Path>) -> Result<Database, Error> {
-        let path = path.as_ref();
-        if let Some(basename) = path.parent() {
-            create_dir_all(basename)?;
-        }
-
-        let conn = Connection::open(path)?;
-
-        Ok(Database { conn })
-    }
-
     pub fn migrate(&mut self) -> Result<(), Error> {
         migrate::migrations::runner().run(&mut self.conn)?;
 

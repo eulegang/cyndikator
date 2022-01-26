@@ -4,8 +4,10 @@ use eyre::WrapErr;
 use tabular::{Row, Table};
 use url::Url;
 
-use crate::{config::Config, db::Database};
+use crate::config::Config;
 use std::path::PathBuf;
+
+use super::db_coord;
 
 /// Start tracking a feed
 #[derive(Parser)]
@@ -25,7 +27,7 @@ pub struct Track {
 impl Track {
     pub async fn run(self) -> eyre::Result<()> {
         let config = Config::load(self.config.as_deref())?;
-        let mut db = Database::open(config.database_path()?)?;
+        let mut db = db_coord(&config.database)?.open()?;
 
         let url = Url::parse(&self.feed).wrap_err("invalid url")?;
 
@@ -50,7 +52,7 @@ pub struct Tracking {
 impl Tracking {
     pub async fn run(self) -> eyre::Result<()> {
         let config = Config::load(self.config.as_deref())?;
-        let mut db = Database::open(config.database_path()?)?;
+        let mut db = db_coord(&config.database)?.open()?;
 
         let feeds = db.tracking()?;
 
@@ -97,7 +99,7 @@ pub struct Untrack {
 impl Untrack {
     pub async fn run(self) -> eyre::Result<()> {
         let config = Config::load(self.config.as_deref())?;
-        let mut db = Database::open(config.database_path()?)?;
+        let mut db = db_coord(&config.database)?.open()?;
 
         let existed = db.untrack(&self.feed)?;
 

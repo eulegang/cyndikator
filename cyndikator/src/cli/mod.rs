@@ -1,4 +1,7 @@
 use clap::Parser;
+use eyre::ContextCompat;
+
+use crate::{config::DatabaseConfig, db::DatabaseCoord};
 
 mod init;
 mod run;
@@ -25,5 +28,20 @@ impl Cli {
             Cli::Init(cmd) => cmd.run().await,
             Cli::View(cmd) => cmd.run().await,
         }
+    }
+}
+
+fn db_coord(cfg: &DatabaseConfig) -> eyre::Result<DatabaseCoord> {
+    match cfg.ty.as_str() {
+        "sqlite3" => {
+            let path = cfg
+                .path
+                .as_ref()
+                .wrap_err("missing sqlite3 database path")?;
+
+            Ok(DatabaseCoord::Sqlite(&path))
+        }
+
+        ty => eyre::bail!("invalid database driver type: {}", ty),
     }
 }

@@ -1,11 +1,13 @@
+use crate::config::Config;
 use crate::daemon::Daemon;
-use crate::{config::Config, db::Database};
 use clap::Parser;
-use eyre::WrapErr;
+use eyre::{ContextCompat, WrapErr};
 use std::fs;
 use std::path::PathBuf;
 
 use cyndikator_dispatch::Dispatch;
+
+use super::db_coord;
 
 /// Start tracking feeds
 #[derive(Parser)]
@@ -18,9 +20,8 @@ pub struct Run {
 impl Run {
     pub async fn run(self) -> eyre::Result<()> {
         let config = Config::load(self.config.as_deref())?;
-        let db_path = config.database_path()?;
-        let db = Database::open(db_path)?;
-        let dispatch_path = config.dispatch_path()?;
+        let db = db_coord(&config.database)?.open()?;
+        let dispatch_path = config.dispatch.path.wrap_err("dispatch path not set")?;
 
         let content = fs::read_to_string(dispatch_path)?;
 

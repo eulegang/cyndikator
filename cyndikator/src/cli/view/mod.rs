@@ -1,6 +1,8 @@
-use crate::{config::Config, db::Database};
+use crate::config::Config;
 use clap::Parser;
 use std::path::PathBuf;
+
+use super::db_coord;
 
 /// View recorded events
 #[derive(Parser)]
@@ -13,7 +15,8 @@ pub struct View {
 impl View {
     pub async fn run(self) -> eyre::Result<()> {
         let config = Config::load(self.config.as_deref())?;
-        let db = Database::open(config.database_path()?)?;
+
+        let db = db_coord(&config.database)?.open()?;
         let view = crate::view::View::new(db);
 
         view.interact()
