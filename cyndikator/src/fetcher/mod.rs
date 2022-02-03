@@ -75,8 +75,18 @@ impl Fetcher {
             let url = self.url.clone();
             let text = match url.scheme() {
                 "https" | "http" => {
-                    let resp = reqwest::get(url).await?.error_for_status()?;
-                    resp.text().await?
+                    let client = reqwest::ClientBuilder::new()
+                        .user_agent("cyndikator")
+                        .build()
+                        .unwrap();
+
+                    client
+                        .get(url)
+                        .send()
+                        .await?
+                        .error_for_status()?
+                        .text()
+                        .await?
                 }
 
                 "file" => read_to_string(url.path())?,

@@ -7,9 +7,11 @@ use dispatch::Dispatch;
 use std::path::Path;
 
 mod dispatch;
+mod lua;
 
 pub enum DispatcherSource<'a> {
     Dispatch(&'a Path),
+    Lua(&'a Path),
 }
 
 impl<'a> DispatcherSource<'a> {
@@ -22,18 +24,28 @@ impl<'a> DispatcherSource<'a> {
 
                 Ok(Dispatcher::Dispatch(dispatch))
             }
+
+            DispatcherSource::Lua(path) => {
+                let content = std::fs::read_to_string(path)?;
+
+                let lua = lua::LuaDispatch::parse(&content)?;
+
+                Ok(Dispatcher::Lua(lua))
+            }
         }
     }
 }
 
 pub enum Dispatcher {
     Dispatch(Dispatch),
+    Lua(lua::LuaDispatch),
 }
 
 impl Dispatcher {
     pub fn dispatch(&self, event: &Event) -> Vec<Action> {
         match self {
             Dispatcher::Dispatch(d) => d.dispatch(event),
+            Dispatcher::Lua(d) => d.dispatch(event),
         }
     }
 }
@@ -67,7 +79,7 @@ pub struct Event {
 }
 
 /// An action to take given a specific [Event]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Action {
     /// Record the event for viewing later
     Record,
@@ -86,4 +98,7 @@ pub enum Error {
 
     #[error("dispatch parse error: {}", 0)]
     Parse(#[from] dispatch::ParseError),
+
+    #[error("lua error: {}", 0)]
+    Lua(#[from] rlua::Error),
 }
