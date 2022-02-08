@@ -206,7 +206,7 @@ impl Parsable for Regex {
         let (tokens, t) = next(tokens)?;
         match t {
             Token::Regex { content, flags } => {
-                let mut builder = RegexBuilder::new(&content);
+                let mut builder = RegexBuilder::new(content);
 
                 if flags.find('i').is_some() {
                     builder.case_insensitive(true);
@@ -315,13 +315,13 @@ impl Parsable for StringInterpol {
             Token::Str {
                 content,
                 interpolated: false,
-            } => StringInterpol::Inert(escapes(&content, false)),
+            } => StringInterpol::Inert(escapes(content, false)),
 
             Token::Str {
                 content,
                 interpolated: true,
             } => {
-                parse_interpol_str(&content)
+                parse_interpol_str(content)
                     .map_err(|_| ParseError::InvalidExpectation {
                         reality: format!("{:?}", content),
                         expect: "a valid string".to_string(),

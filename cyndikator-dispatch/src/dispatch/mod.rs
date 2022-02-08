@@ -50,7 +50,7 @@ impl Dispatch {
         let mut cases = Vec::new();
 
         while !tokens.is_empty() {
-            let (t, case) = DispatchCase::parse(&tokens)?;
+            let (t, case) = DispatchCase::parse(tokens)?;
             cases.push(case);
 
             tokens = t;

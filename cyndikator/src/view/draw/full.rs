@@ -64,11 +64,11 @@ impl<'a> Draw for Line<'a> {
         let cat_full = self.entry.categories.join(", ");
 
         let feed = trunc(
-            &self.entry.feed.as_deref().unwrap_or("<untitled feed>"),
+            self.entry.feed.as_deref().unwrap_or("<untitled feed>"),
             self.width / 4 - 2,
         );
         let title = trunc(
-            &self.entry.title.as_deref().unwrap_or("<untitled item>"),
+            self.entry.title.as_deref().unwrap_or("<untitled item>"),
             self.width / 2,
         );
         let cat = trunc(&cat_full, self.width / 4);

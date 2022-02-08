@@ -41,7 +41,7 @@ impl LuaDispatch {
                 Ok(())
             })?;
 
-            let a = actions.clone();
+            let a = actions;
             let exec = ctx.create_function_mut(move |_, sh: String| {
                 let mut actions = match a.lock() {
                     Ok(a) => a,

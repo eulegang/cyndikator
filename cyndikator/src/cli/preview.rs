@@ -68,7 +68,7 @@ impl Preview {
             };
 
             for event in &events {
-                let actions = dispatch.dispatch(&event);
+                let actions = dispatch.dispatch(event);
 
                 if !self.verbose && actions.is_empty() {
                     continue;

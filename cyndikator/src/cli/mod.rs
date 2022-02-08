@@ -46,7 +46,7 @@ fn db_coord(cfg: &DatabaseConfig) -> eyre::Result<DatabaseCoord> {
                 .as_ref()
                 .wrap_err("missing sqlite3 database path")?;
 
-            Ok(DatabaseCoord::Sqlite(&path))
+            Ok(DatabaseCoord::Sqlite(path))
         }
 
         ty => eyre::bail!("invalid database driver type: {}", ty),
