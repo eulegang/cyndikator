@@ -9,6 +9,7 @@ use std::path::Path;
 mod dispatch;
 mod lua;
 
+#[derive(Debug)]
 pub enum DispatcherSource<'a> {
     Dispatch(&'a Path),
     Lua(&'a Path),
@@ -43,10 +44,10 @@ pub enum Dispatcher {
 
 impl Dispatcher {
     pub fn dispatch(&self, event: &Event) -> Vec<Action> {
-        match self {
+        dedup(match self {
             Dispatcher::Dispatch(d) => d.dispatch(event),
             Dispatcher::Lua(d) => d.dispatch(event),
-        }
+        })
     }
 }
 
@@ -89,6 +90,18 @@ pub enum Action {
 
     /// Execute a shell line
     Exec(String),
+}
+
+fn dedup(actions: Vec<Action>) -> Vec<Action> {
+    let mut res = Vec::with_capacity(actions.len());
+
+    for a in actions {
+        if !res.contains(&a) {
+            res.push(a);
+        }
+    }
+
+    res
 }
 
 #[derive(thiserror::Error, Debug)]
