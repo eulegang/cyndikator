@@ -1,5 +1,25 @@
-[workspace]
-members = [
-  "cyndikator",
-  "cyndikator-dispatch",
-]
+[package]
+name = "cyndikator"
+version = "0.2.2"
+authors = ["eulegang <eulegang@eulegang.dev>"]
+edition = "2018"
+license = "MIT"
+description = "A cli rss reader"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "cynd"
+path = "src/main.rs"
+
+[dependencies]
+eyre = "0.6"
+thiserror = "2"
+clap = { version = "4.5", features = [ "derive", "env" ] }
+dirs = "6.0"
+tokio = { version = "1", features = [ "full" ] }
+reqwest = { version = "0.12" }
+url = { version = "2.5" }
+chrono = { version = "0.4" }
+feed-rs = "2.3"
+
