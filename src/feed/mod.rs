@@ -18,6 +18,17 @@ pub struct Feed {
 #[derive(Debug)]
 pub struct FeedItem {
     pub id: String,
+    pub title: Option<String>,
+    pub authors: Vec<Person>,
+    pub contributors: Vec<Person>,
+    pub summary: Option<String>,
+    pub content: Option<Content>,
+    pub source: Option<String>,
+    pub categories: Vec<Category>,
+    pub links: Vec<Link>,
+    pub updated: Option<DateTime<Utc>>,
+    pub published: Option<DateTime<Utc>>,
+    pub base: Option<String>,
 }
 
 #[derive(Debug)]
@@ -25,6 +36,12 @@ pub struct Person {
     pub name: String,
     pub uri: Option<String>,
     pub email: Option<String>,
+}
+
+#[derive(Debug)]
+pub enum Content {
+    Body(String),
+    Link(Link),
 }
 
 #[derive(Debug)]
@@ -80,9 +97,32 @@ impl From<feed_rs::model::Person> for Person {
 
 impl From<feed_rs::model::Entry> for FeedItem {
     fn from(value: feed_rs::model::Entry) -> Self {
-        let id = value.id;
+        let authors = value.authors.into_iter().map(Into::into).collect();
+        let contributors = value.contributors.into_iter().map(Into::into).collect();
+        let categories = value.categories.into_iter().map(Into::into).collect();
+        let links = value.links.into_iter().map(Into::into).collect();
+        let content = value.content.and_then(|content| {
+            if let Some(body) = content.body {
+                Some(Content::Body(body))
+            } else {
+                content.src.map(|link| Content::Link(link.into()))
+            }
+        });
 
-        Self { id }
+        Self {
+            id: value.id,
+            title: value.title.map(|t| t.content),
+            authors,
+            contributors,
+            summary: value.summary.map(|t| t.content),
+            content,
+            source: value.source,
+            categories,
+            links,
+            updated: value.updated,
+            published: value.published,
+            base: value.base,
+        }
     }
 }
 
