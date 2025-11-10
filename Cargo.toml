@@ -2,7 +2,7 @@
 name = "cyndikator"
 version = "0.2.2"
 authors = ["eulegang <eulegang@eulegang.dev>"]
-edition = "2018"
+edition = "2024"
 license = "MIT"
 description = "A cli rss reader"
 
@@ -22,4 +22,5 @@ reqwest = { version = "0.12" }
 url = { version = "2.5" }
 chrono = { version = "0.4" }
 feed-rs = "2.3"
+rlua = "0.20.1"
 

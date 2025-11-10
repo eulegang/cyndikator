@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 
-#[derive(Debug)]
+mod lua;
+
+#[derive(Clone, Debug)]
 pub struct Feed {
     pub id: String,
     pub title: Option<String>,
@@ -15,7 +17,7 @@ pub struct Feed {
     pub items: Vec<FeedItem>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct FeedItem {
     pub id: String,
     pub title: Option<String>,
@@ -31,20 +33,20 @@ pub struct FeedItem {
     pub base: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Person {
     pub name: String,
     pub uri: Option<String>,
     pub email: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Content {
     Body(String),
     Link(Link),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Link {
     pub href: String,
     pub rel: Option<String>,
@@ -52,7 +54,7 @@ pub struct Link {
     pub title: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Category {
     pub term: String,
     pub label: Option<String>,
