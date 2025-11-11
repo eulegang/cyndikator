@@ -6,7 +6,13 @@ use url::Url;
 
 #[derive(Parser)]
 pub enum Cli {
+    Fetch(Fetch),
     Eval(Eval),
+}
+
+#[derive(Parser)]
+pub struct Fetch {
+    url: Url,
 }
 
 #[derive(Parser)]
@@ -37,6 +43,7 @@ impl Runner for Cli {
     async fn run(self) -> eyre::Result<()> {
         match self {
             Cli::Eval(eval) => eval.run().await,
+            Cli::Fetch(fetch) => fetch.run().await,
         }
     }
 }
@@ -58,7 +65,16 @@ impl Runner for Eval {
             }
         }
 
-        //dbg!(feed);
+        Ok(())
+    }
+}
+
+impl Runner for Fetch {
+    async fn run(self) -> eyre::Result<()> {
+        let client = Client::new(None)?;
+        let feed = client.fetch_items(self.url).await?;
+
+        serde_json::to_writer_pretty(std::io::stdout(), &feed)?;
 
         Ok(())
     }

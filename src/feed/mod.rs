@@ -1,9 +1,16 @@
 use chrono::{DateTime, Utc};
+use serde::{Serialize, ser::SerializeMap};
 
 mod lua;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Feed {
+    pub meta: FeedMeta,
+    pub items: Vec<FeedItem>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct FeedMeta {
     pub id: String,
     pub title: Option<String>,
     pub description: Option<String>,
@@ -14,10 +21,9 @@ pub struct Feed {
     pub ttl: Option<u32>,
     pub updated: Option<DateTime<Utc>>,
     pub published: Option<DateTime<Utc>>,
-    pub items: Vec<FeedItem>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct FeedItem {
     pub id: String,
     pub title: Option<String>,
@@ -33,7 +39,7 @@ pub struct FeedItem {
     pub base: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Person {
     pub name: String,
     pub uri: Option<String>,
@@ -46,7 +52,30 @@ pub enum Content {
     Link(Link),
 }
 
-#[derive(Debug, Clone)]
+impl Serialize for Content {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Content::Body(body) => {
+                let mut map = serializer.serialize_map(Some(2))?;
+                map.serialize_entry("type", "body")?;
+                map.serialize_entry("body", body)?;
+                map.end()
+            }
+
+            Content::Link(link) => {
+                let mut map = serializer.serialize_map(Some(2))?;
+                map.serialize_entry("type", "link")?;
+                map.serialize_entry("link", link)?;
+                map.end()
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct Link {
     pub href: String,
     pub rel: Option<String>,
@@ -54,7 +83,7 @@ pub struct Link {
     pub title: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Category {
     pub term: String,
     pub label: Option<String>,
@@ -72,17 +101,19 @@ impl From<feed_rs::model::Feed> for Feed {
         let links = value.links.into_iter().map(Into::into).collect();
 
         Feed {
-            id: value.id,
-            title,
-            description,
+            meta: FeedMeta {
+                id: value.id,
+                title,
+                description,
+                authors,
+                contributors,
+                categories,
+                links,
+                ttl: value.ttl,
+                updated: value.updated,
+                published: value.published,
+            },
             items,
-            authors,
-            contributors,
-            categories,
-            links,
-            ttl: value.ttl,
-            updated: value.updated,
-            published: value.published,
         }
     }
 }

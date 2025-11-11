@@ -255,6 +255,8 @@ dependencies = [
  "feed-rs",
  "reqwest",
  "rlua",
+ "serde",
+ "serde_json",
  "thiserror",
  "tokio",
  "url",
