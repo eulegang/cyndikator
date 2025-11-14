@@ -15,6 +15,9 @@ pub enum Error {
     #[error("unable to parse feed: {0}")]
     FeedParse(#[from] feed_rs::parser::ParseFeedError),
 
+    #[error("failed to transact db: {0}")]
+    Sqlite(#[from] rusqlite::Error),
+
     #[error("Shutdown runtime")]
     RuntimeShutdown,
 
