@@ -79,7 +79,7 @@ impl Client {
         Ok(())
     }
 
-    pub async fn migrate(&self) -> crate::Result<()> {
+    pub(crate) async fn migrate(&self) -> crate::Result<()> {
         db::migrate(&self.conn)
     }
 

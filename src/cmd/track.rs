@@ -14,10 +14,12 @@ pub struct Track {
 
 impl Runner for Track {
     async fn run(self) -> eyre::Result<()> {
-        let client = Client::builder().build()?;
-
-        client.migrate().await?;
-        client.track(self.url, self.ttl).await?;
+        Client::builder()
+            .migrate()
+            .build()
+            .await?
+            .track(self.url, self.ttl)
+            .await?;
 
         Ok(())
     }

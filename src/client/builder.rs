@@ -7,6 +7,7 @@ pub struct ClientBuilder {
     client: Option<reqwest::Client>,
     runtime: Option<PathBuf>,
     database: Option<PathBuf>,
+    migrate: Option<bool>,
 }
 
 impl ClientBuilder {
@@ -35,7 +36,12 @@ impl ClientBuilder {
         self
     }
 
-    pub fn build(self) -> crate::Result<super::Client> {
+    pub fn migrate(mut self) -> Self {
+        self.migrate = Some(true);
+        self
+    }
+
+    pub async fn build(self) -> crate::Result<super::Client> {
         let rpath = self
             .runtime
             .or_else(|| {
@@ -60,10 +66,16 @@ impl ClientBuilder {
         let client = self.client.unwrap_or_default();
         let conn = rusqlite::Connection::open(dpath).map_err(|_| crate::Error::InvalidSetup)?;
 
-        Ok(super::Client {
+        let client = super::Client {
             client,
             runtime,
             conn,
-        })
+        };
+
+        if self.migrate.unwrap_or(false) {
+            client.migrate().await?;
+        }
+
+        Ok(client)
     }
 }

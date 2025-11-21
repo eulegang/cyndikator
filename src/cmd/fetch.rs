@@ -11,8 +11,11 @@ pub struct Fetch {
 
 impl Runner for Fetch {
     async fn run(self) -> eyre::Result<()> {
-        let client = Client::builder().build()?;
-        let feed = client.fetch_items(self.url).await?;
+        let feed = Client::builder()
+            .build()
+            .await?
+            .fetch_items(self.url)
+            .await?;
 
         serde_json::to_writer_pretty(std::io::stdout(), &feed)?;
 

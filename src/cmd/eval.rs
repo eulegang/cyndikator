@@ -19,7 +19,7 @@ pub struct Eval {
 
 impl Runner for Eval {
     async fn run(self) -> eyre::Result<()> {
-        let client = Client::builder().runtime_opt(self.file).build()?;
+        let client = Client::builder().runtime_opt(self.file).build().await?;
         let feed = client.fetch_items(self.url).await?;
 
         for item in &feed.items {

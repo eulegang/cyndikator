@@ -14,10 +14,12 @@ pub struct Untrack {
 
 impl Runner for Untrack {
     async fn run(self) -> eyre::Result<()> {
-        let client = Client::builder().build()?;
-
-        client.migrate().await?;
-        client.untrack(self.url, self.purge).await?;
+        Client::builder()
+            .migrate()
+            .build()
+            .await?
+            .untrack(self.url, self.purge)
+            .await?;
 
         Ok(())
     }
