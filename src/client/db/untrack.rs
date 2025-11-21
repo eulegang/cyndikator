@@ -8,6 +8,8 @@ pub struct Untrack<'a> {
 }
 
 impl DBOperation for Untrack<'_> {
+    type T = ();
+
     fn run(&self, conn: &rusqlite::Connection) -> crate::Result<()> {
         conn.execute(
             r#"

@@ -5,9 +5,8 @@ use rlua::{FromLua, Value};
 use crate::FeedItem;
 
 mod env;
-mod inst;
 
-pub use inst::{Instruction, Program};
+use crate::interp::inst::{Instruction, Program};
 
 pub(crate) struct Runtime {
     send: std::sync::mpsc::Sender<Message>,

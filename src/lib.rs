@@ -2,6 +2,7 @@
 
 mod client;
 mod feed;
+mod interp;
 mod runtime;
 
 pub use client::Client;

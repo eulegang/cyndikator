@@ -1,10 +1,12 @@
 use rusqlite::Connection;
 
 mod feed;
+mod feeds;
 mod track;
 mod untrack;
 
 pub use feed::Feed;
+pub use feeds::GetFeed;
 pub use track::Track;
 pub use untrack::Untrack;
 
@@ -16,5 +18,6 @@ pub fn migrate(conn: &Connection) -> crate::Result<()> {
 }
 
 pub trait DBOperation {
-    fn run(&self, conn: &Connection) -> crate::Result<()>;
+    type T;
+    fn run(&self, conn: &Connection) -> crate::Result<Self::T>;
 }

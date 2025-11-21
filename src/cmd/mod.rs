@@ -4,6 +4,7 @@ use crate::Runner;
 
 mod eval;
 mod fetch;
+mod run;
 mod track;
 mod untrack;
 
@@ -13,6 +14,7 @@ pub enum Cli {
     Eval(eval::Eval),
     Track(track::Track),
     Untrack(untrack::Untrack),
+    Run(run::Run),
 }
 
 impl Runner for Cli {
@@ -22,6 +24,7 @@ impl Runner for Cli {
             Cli::Fetch(fetch) => fetch.run().await,
             Cli::Track(track) => track.run().await,
             Cli::Untrack(untrack) => untrack.run().await,
+            Cli::Run(run) => run.run().await,
         }
     }
 }

@@ -58,8 +58,7 @@ impl ClientBuilder {
 
         let runtime = Runtime::new(rpath);
         let client = self.client.unwrap_or_default();
-        let conn =
-            rusqlite::Connection::open(dbg!(dpath)).map_err(|_| crate::Error::InvalidSetup)?;
+        let conn = rusqlite::Connection::open(dpath).map_err(|_| crate::Error::InvalidSetup)?;
 
         Ok(super::Client {
             client,

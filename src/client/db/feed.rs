@@ -10,6 +10,8 @@ pub struct Feed<'a> {
 }
 
 impl DBOperation for Feed<'_> {
+    type T = ();
+
     fn run(&self, conn: &Connection) -> crate::Result<()> {
         conn.execute(
             r#"

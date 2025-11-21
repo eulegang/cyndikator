@@ -10,6 +10,8 @@ pub struct Track<'a> {
 }
 
 impl DBOperation for Track<'_> {
+    type T = ();
+
     fn run(&self, conn: &Connection) -> crate::Result<()> {
         conn.execute(
             r#"

@@ -1,12 +1,9 @@
-use chrono::Utc;
+use chrono::{Duration, Utc};
 use rusqlite::Connection;
 use url::Url;
 
 use crate::{
-    FeedItem, Result,
-    client::db::DBOperation,
-    feed::Feed,
-    runtime::{Program, Runtime},
+    FeedItem, Result, client::db::DBOperation, feed::Feed, interp::inst::Program, runtime::Runtime,
 };
 
 mod builder;
@@ -84,5 +81,24 @@ impl Client {
 
     pub async fn migrate(&self) -> crate::Result<()> {
         db::migrate(&self.conn)
+    }
+
+    pub async fn run(&self) -> crate::Result<()> {
+        let feeds = db::GetFeed {}.run(&self.conn)?;
+
+        let now = Utc::now();
+        let watch: Vec<_> = feeds
+            .into_iter()
+            .map(|feed| {
+                let next = feed.last_fetch + Duration::minutes(feed.ttl.into());
+                let due = next < now;
+
+                (next, due, feed)
+            })
+            .collect();
+
+        dbg!(watch);
+
+        Ok(())
     }
 }
