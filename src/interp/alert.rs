@@ -28,7 +28,21 @@ impl InterpInst for Alert {
 
 impl std::fmt::Display for Alert {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "alert")
+        let mut params = String::new();
+
+        if let Some(summary) = &self.summary {
+            params.push_str(&format!("summary = \"{summary}\""));
+        }
+
+        if let Some(message) = &self.message {
+            if self.summary.is_some() {
+                params.push(' ');
+            }
+
+            params.push_str(&format!("message = \"{message}\""));
+        }
+
+        write!(f, "alert({params})")
     }
 }
 
