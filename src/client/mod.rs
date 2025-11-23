@@ -116,8 +116,6 @@ impl Client {
             })
             .collect();
 
-        dbg!(watch);
-
         Ok(())
     }
 }

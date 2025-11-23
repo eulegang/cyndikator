@@ -53,7 +53,6 @@ fn runtime_main(recv: std::sync::mpsc::Receiver<Message>, path: PathBuf) {
         }
     }
 
-    dbg!("loading");
     let conf = match interp.load(path).set_environment(env).eval::<Conf>() {
         Ok(conf) => conf,
         Err(err) => {
@@ -61,8 +60,6 @@ fn runtime_main(recv: std::sync::mpsc::Receiver<Message>, path: PathBuf) {
             return;
         }
     };
-
-    dbg!("loaded");
 
     while let Ok(msg) = recv.recv() {
         match msg {
