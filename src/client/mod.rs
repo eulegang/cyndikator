@@ -3,7 +3,11 @@ use rusqlite::Connection;
 use url::Url;
 
 use crate::{
-    FeedItem, Result, client::db::DBOperation, feed::Feed, interp::inst::Program, runtime::Runtime,
+    FeedItem, Result,
+    client::db::DBOperation,
+    feed::{Feed, FeedMeta},
+    interp::{Interp, Program},
+    runtime::Runtime,
 };
 
 mod builder;
@@ -37,8 +41,18 @@ impl Client {
         Ok(bare_feed.into())
     }
 
-    pub async fn eval(&self, item: FeedItem) -> Result<Program> {
-        self.runtime.process(item).await
+    pub async fn eval(&self, feed: Feed) -> Result<(FeedMeta, Vec<(FeedItem, Program)>)> {
+        let mut res = Vec::new();
+        for item in feed.items {
+            let prog = self
+                .runtime
+                .process(feed.meta.clone(), item.clone())
+                .await?;
+
+            res.push((item, prog));
+        }
+
+        Ok((feed.meta, res))
     }
 
     pub async fn untrack(&self, url: Url, purge: bool) -> crate::Result<()> {
@@ -74,7 +88,12 @@ impl Client {
 
         track_op.run(&self.conn)?;
 
-        // process entries
+        let (meta, instructions) = self.eval(feed).await?;
+
+        let interp = Interp {};
+        for (item, prog) in instructions {
+            interp.run(&meta, &item, &prog)?;
+        }
 
         Ok(())
     }

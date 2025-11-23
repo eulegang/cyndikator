@@ -1,12 +1,40 @@
 use std::sync::{Arc, Mutex};
 
-use rlua::{ToLua, Value};
+use rlua::{FromLua, ToLua, Value};
 
-use crate::runtime::Instruction;
+use crate::{
+    interp::{Alert, Exec, Record},
+    runtime::Instruction,
+};
 
 #[derive(Default)]
 pub(crate) struct Env {
     pub(crate) inst: Arc<Mutex<Vec<Instruction>>>,
+}
+
+struct AlertOptions {
+    summary: Option<String>,
+    message: Option<String>,
+}
+
+impl<'lua> FromLua<'lua> for AlertOptions {
+    fn from_lua(value: Value<'lua>, _: &'lua rlua::Lua) -> rlua::Result<Self> {
+        if let Some(message) = value.as_str() {
+            Ok(AlertOptions {
+                summary: None,
+                message: Some(message.to_string()),
+            })
+        } else if let Some(table) = value.as_table() {
+            let summary = table.get("summary")?;
+            let message = table.get("message")?;
+
+            Ok(AlertOptions { summary, message })
+        } else {
+            Err(rlua::Error::RuntimeError(
+                "invalid type signature".to_string(),
+            ))
+        }
+    }
 }
 
 impl<'lua> ToLua<'lua> for Env {
@@ -21,7 +49,7 @@ impl<'lua> ToLua<'lua> for Env {
                     return Err(rlua::Error::runtime("failed to lock instructions"));
                 };
 
-                inst.push(Instruction::Record);
+                inst.push(Record {}.into());
 
                 Ok(Value::Nil)
             })?,
@@ -29,13 +57,24 @@ impl<'lua> ToLua<'lua> for Env {
 
         let inst = self.inst.clone();
         table.set(
-            "report",
-            lua.create_function(move |_, _: ()| {
+            "alert",
+            lua.create_function(move |_, opts: Option<AlertOptions>| {
                 let Ok(mut inst) = inst.lock() else {
                     return Err(rlua::Error::runtime("failed to lock instructions"));
                 };
 
-                inst.push(Instruction::Alert);
+                let opts = opts.unwrap_or(AlertOptions {
+                    summary: None,
+                    message: None,
+                });
+
+                inst.push(
+                    Alert {
+                        summary: opts.summary,
+                        message: opts.message,
+                    }
+                    .into(),
+                );
 
                 Ok(Value::Nil)
             })?,
@@ -44,12 +83,12 @@ impl<'lua> ToLua<'lua> for Env {
         let inst = self.inst.clone();
         table.set(
             "exec",
-            lua.create_function(move |_, cmd: String| {
+            lua.create_function(move |_, sh: String| {
                 let Ok(mut inst) = inst.lock() else {
                     return Err(rlua::Error::runtime("failed to lock instructions"));
                 };
 
-                inst.push(Instruction::Exec(cmd));
+                inst.push(Exec { sh }.into());
 
                 Ok(Value::Nil)
             })?,

@@ -6,14 +6,15 @@ use crate::FeedItem;
 
 mod env;
 
-use crate::interp::inst::{Instruction, Program};
+use crate::feed::FeedMeta;
+use crate::interp::{Instruction, Program};
 
 pub(crate) struct Runtime {
     send: std::sync::mpsc::Sender<Message>,
 }
 
 enum Message {
-    Process(FeedItem, tokio::sync::oneshot::Sender<Program>),
+    Process(FeedMeta, FeedItem, tokio::sync::oneshot::Sender<Program>),
 }
 
 impl Runtime {
@@ -25,10 +26,10 @@ impl Runtime {
         Self { send }
     }
 
-    pub(crate) async fn process(&self, item: FeedItem) -> crate::Result<Program> {
+    pub(crate) async fn process(&self, meta: FeedMeta, item: FeedItem) -> crate::Result<Program> {
         let (send, recv) = tokio::sync::oneshot::channel();
         self.send
-            .send(Message::Process(item, send))
+            .send(Message::Process(meta, item, send))
             .map_err(|_| crate::Error::RuntimeShutdown)?;
 
         recv.await.map_err(|_| crate::Error::RuntimeShutdown)
@@ -40,13 +41,32 @@ fn runtime_main(recv: std::sync::mpsc::Receiver<Message>, path: PathBuf) {
     let env = env::Env::default();
     let inst = env.inst.clone();
 
-    let Ok(conf) = interp.load(path).set_environment(env).eval::<Conf>() else {
-        return;
+    if let Some(base) = path.parent() {
+        if let Err(err) = interp
+            .load(format!(
+                "package.path = \"{}\" .. package.path",
+                import_paths(base)
+            ))
+            .exec()
+        {
+            dbg!(err);
+        }
+    }
+
+    dbg!("loading");
+    let conf = match interp.load(path).set_environment(env).eval::<Conf>() {
+        Ok(conf) => conf,
+        Err(err) => {
+            dbg!(err);
+            return;
+        }
     };
+
+    dbg!("loaded");
 
     while let Ok(msg) = recv.recv() {
         match msg {
-            Message::Process(feed_item, sender) => {
+            Message::Process(meta, feed_item, sender) => {
                 {
                     let Ok(mut guard) = inst.lock() else {
                         continue;
@@ -54,7 +74,10 @@ fn runtime_main(recv: std::sync::mpsc::Receiver<Message>, path: PathBuf) {
                     guard.clear();
                 }
 
-                if let Err(e) = conf.func.call::<FeedItem, Value>(feed_item) {
+                if let Err(e) = conf
+                    .func
+                    .call::<(FeedItem, FeedMeta), Value>((feed_item, meta))
+                {
                     dbg!(e);
                     continue;
                 }
@@ -86,4 +109,11 @@ impl<'lua> FromLua<'lua> for Conf<'lua> {
             Err(rlua::Error::runtime("expected an object for configuration"))
         }
     }
+}
+
+fn import_paths(base: &std::path::Path) -> String {
+    let base = base.display().to_string();
+    let base = base.replace("\"", "\\\"");
+
+    format!("{base}/?.lua;{base}/?/init.lua;")
 }

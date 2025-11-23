@@ -22,15 +22,15 @@ impl Runner for Eval {
         let client = Client::builder().runtime_opt(self.file).build().await?;
         let feed = client.fetch_items(self.url).await?;
 
-        for item in &feed.items {
-            let res = client.eval(item.clone()).await?;
-            if !res.is_empty() || self.all {
+        let (_, items) = client.eval(feed).await?;
+        for (item, prog) in items {
+            if !prog.is_empty() || self.all {
                 println!(
                     "[{}]({})",
                     item.title.as_deref().unwrap_or_default(),
                     item.id
                 );
-                println!("{}", res);
+                println!("{}", prog);
             }
         }
 

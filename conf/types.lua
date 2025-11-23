@@ -53,8 +53,13 @@ end
 --- @field body string | nil
 --- @field link Link | nil
 
+--- @class AlertOpts
+--- @field summary? string | nil
+--- @field message? string | nil
+
 --- Report to the user using a notification system
-function report() end
+--- @param opts? AlertOpts
+function alert(opts) end
 
 --- Record the current event in a database
 function record() end
