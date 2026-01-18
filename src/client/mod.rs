@@ -1,24 +1,24 @@
-use chrono::{Duration, Utc};
-use rusqlite::Connection;
+use crate::db::Conn;
+use chrono::Utc;
 use url::Url;
 
 use crate::{
     FeedItem, Result,
-    client::db::DBOperation,
+    client::daemon::Daemon,
     feed::{Feed, FeedMeta},
     interp::{Interp, Program},
     runtime::Runtime,
 };
 
 mod builder;
-mod db;
+mod daemon;
 
 pub use builder::ClientBuilder;
 
 pub struct Client {
-    client: reqwest::Client,
     runtime: Runtime,
-    conn: Connection,
+    conn: Conn,
+    fetcher: crate::fetcher::Fetcher,
 }
 
 impl Client {
@@ -27,18 +27,7 @@ impl Client {
     }
 
     pub async fn fetch_items(&self, url: Url) -> Result<Feed> {
-        let resp = self
-            .client
-            .get(url)
-            .send()
-            .await?
-            .error_for_status()?
-            .bytes()
-            .await?;
-
-        let bare_feed = feed_rs::parser::parse(&*resp)?;
-
-        Ok(bare_feed.into())
+        self.fetcher.fetch_items(url).await
     }
 
     pub async fn eval(&self, feed: Feed) -> Result<(FeedMeta, Vec<(FeedItem, Program)>)> {
@@ -56,13 +45,7 @@ impl Client {
     }
 
     pub async fn untrack(&self, url: Url, purge: bool) -> crate::Result<()> {
-        let untrack = db::Untrack {
-            url: url.as_ref(),
-            purge,
-        };
-
-        untrack.run(&self.conn)?;
-
+        self.conn.untrack(url.to_string(), purge).await?;
         Ok(())
     }
 
@@ -70,24 +53,7 @@ impl Client {
         let endpoint = url.to_string();
         let feed = self.fetch_items(url).await?;
 
-        let ttl = ttl.or(feed.meta.ttl).unwrap_or(30);
-        let name = feed.meta.title.clone();
-
-        let feed_op = db::Feed {
-            name: name.as_deref(),
-            url: &endpoint,
-            ttl,
-        };
-
-        feed_op.run(&self.conn)?;
-
-        let track_op = db::Track {
-            url: &endpoint,
-            time: Utc::now(),
-        };
-
-        track_op.run(&self.conn)?;
-
+        self.conn.track(endpoint, Utc::now()).await?;
         let (meta, instructions) = self.eval(feed).await?;
 
         let interp = Interp {};
@@ -98,24 +64,7 @@ impl Client {
         Ok(())
     }
 
-    pub(crate) async fn migrate(&self) -> crate::Result<()> {
-        db::migrate(&self.conn)
-    }
-
-    pub async fn run(&self) -> crate::Result<()> {
-        let feeds = db::GetFeed {}.run(&self.conn)?;
-
-        let now = Utc::now();
-        let watch: Vec<_> = feeds
-            .into_iter()
-            .map(|feed| {
-                let next = feed.last_fetch + Duration::minutes(feed.ttl.into());
-                let due = next < now;
-
-                (next, due, feed)
-            })
-            .collect();
-
-        Ok(())
+    pub fn daemon(self) -> Daemon {
+        Daemon::new(self)
     }
 }

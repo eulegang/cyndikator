@@ -7,7 +7,13 @@ pub struct Run {}
 
 impl Runner for Run {
     async fn run(self) -> eyre::Result<()> {
-        Client::builder().migrate().build().await?.run().await?;
+        Client::builder()
+            .migrate()
+            .build()
+            .await?
+            .daemon()
+            .run()
+            .await?;
         Ok(())
     }
 }

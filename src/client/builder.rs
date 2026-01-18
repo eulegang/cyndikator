@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::runtime::Runtime;
+use crate::{fetcher::Fetcher, runtime::Runtime};
 
 #[derive(Default)]
 pub struct ClientBuilder {
@@ -65,16 +65,13 @@ impl ClientBuilder {
         let runtime = Runtime::new(rpath);
         let client = self.client.unwrap_or_default();
         let conn = rusqlite::Connection::open(dpath).map_err(|_| crate::Error::InvalidSetup)?;
+        let conn = crate::db::Conn::new(conn, self.migrate.unwrap_or(false))?;
 
         let client = super::Client {
-            client,
             runtime,
             conn,
+            fetcher: Fetcher { client },
         };
-
-        if self.migrate.unwrap_or(false) {
-            client.migrate().await?;
-        }
 
         Ok(client)
     }

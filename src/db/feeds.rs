@@ -1,18 +1,18 @@
-use rusqlite::{Connection, named_params};
+use rusqlite::named_params;
+use tokio::sync::oneshot;
 
-use crate::client::db::DBOperation;
+use crate::db::Operation;
 
 #[derive(Debug)]
-pub struct Feed<'a> {
-    pub name: Option<&'a str>,
-    pub url: &'a str,
+pub struct Insert {
+    pub(crate) send: oneshot::Sender<()>,
+    pub name: Option<String>,
+    pub url: String,
     pub ttl: u32,
 }
 
-impl DBOperation for Feed<'_> {
-    type T = ();
-
-    fn run(&self, conn: &Connection) -> crate::Result<()> {
+impl Operation for Insert {
+    fn perform(self, conn: &rusqlite::Connection) -> crate::Result<()> {
         conn.execute(
             r#"
 insert into feeds (name, url, ttl) 
@@ -26,6 +26,8 @@ do update set ttl = EXCLUDED.ttl"#,
 
             },
         )?;
+
+        let _ = self.send.send(());
 
         Ok(())
     }

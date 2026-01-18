@@ -1,28 +1,21 @@
-use crate::client::db::DBOperation;
-use chrono::{DateTime, Utc};
+use crate::db::Operation;
+
+use super::types::Feed;
+use rusqlite::Connection;
 use rusqlite::fallible_iterator::FallibleIterator;
+use tokio::sync::oneshot;
 
-pub struct GetFeed {}
+pub struct List(pub(crate) oneshot::Sender<Vec<Feed>>);
 
-#[derive(Debug)]
-pub struct Feed {
-    pub url: String,
-    pub ttl: u32,
-    pub last_fetch: DateTime<Utc>,
-    pub tracking: u32,
-}
-
-impl DBOperation for GetFeed {
-    type T = Vec<Feed>;
-
-    fn run(&self, conn: &rusqlite::Connection) -> crate::Result<Self::T> {
+impl Operation for List {
+    fn perform(self, conn: &Connection) -> crate::Result<()> {
         let mut prep = conn.prepare(
             "select url, ttl, last_fetch, tracking.id from feeds inner join tracking on feeds.id = tracking.feed",
         )?;
 
         let rows = prep.query([])?;
 
-        let feeds = rows
+        let feeds: Vec<Feed> = rows
             .map(|row| {
                 Ok(Feed {
                     url: row.get(0)?,
@@ -33,6 +26,8 @@ impl DBOperation for GetFeed {
             })
             .collect()?;
 
-        Ok(feeds)
+        let _ = self.0.send(feeds);
+
+        Ok(())
     }
 }

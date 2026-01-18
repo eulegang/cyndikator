@@ -1,7 +1,9 @@
 #![allow(clippy::new_without_default)]
 
 mod client;
+mod db;
 mod feed;
+mod fetcher;
 mod interp;
 mod runtime;
 
@@ -24,6 +26,12 @@ pub enum Error {
 
     #[error("invalid setup")]
     InvalidSetup,
+
+    #[error("runtime quit (recv)")]
+    RuntimeQuitRecv(#[from] tokio::sync::oneshot::error::RecvError),
+
+    #[error("runtime quit (send)")]
+    RuntimeQuitSend,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
